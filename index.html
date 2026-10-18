@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ball Fight UKD</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #181b24;
+    --line: #2a2f3d;
+    --text: #e8eaf0;
+    --muted: #8a90a2;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+  h1 { margin: 0 0 14px; font-size: 28px; letter-spacing: 1px; }
+  h1 span { color: var(--muted); font-weight: 400; }
+  .wrap { width: 100%; max-width: 600px; display: grid; grid-template-columns: minmax(0, 1fr); }
+  .select {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 14px;
+  }
+  .select select {
+    width: 100%;
+    padding: 6px 8px;
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  .select select:disabled { opacity: 0.5; }
+  .vs { color: var(--muted); font-weight: 700; }
+  .hud {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 12px;
+    align-items: start;
+    margin-bottom: 10px;
+  }
+  .hp-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .hp-name small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+  .hp-track { height: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+  .hp-fill { height: 100%; width: 100%; transition: width 0.15s; }
+  .right { text-align: right; }
+  .right .hp-fill { margin-left: auto; }
+  .skills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .right .skills { justify-content: flex-end; }
+  .chip {
+    position: relative;
+    overflow: hidden;
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .chip .cd { position: absolute; inset: 0 auto 0 0; background: rgba(255, 255, 255, 0.08); }
+  .chip span { position: relative; }
+  .chip.ready { border-color: currentColor; }
+  #timer { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px; padding-top: 2px; }
+  canvas {
+    /* 가로 화면(폰 가로 모드)에서도 경기장이 화면 높이 안에 들어오게 한다 */
+    width: min(100%, max(280px, calc(100svh - 230px)));
+    aspect-ratio: 1;
+    margin: 0 auto;
+    border: 2px solid var(--line);
+    border-radius: 6px;
+    background: #12151d;
+    display: block;
+    touch-action: manipulation;
+    cursor: pointer;
+  }
+  .start {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    margin: 12px auto 0;
+    padding: 12px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #0f1117;
+    background: #f5c542;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .start:active { transform: scale(0.98); }
+  .start:disabled { background: var(--panel); color: var(--muted); border: 1px solid var(--line); cursor: default; }
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; font-size: 13px; line-height: 1.45; }
+  .card h3 { margin: 0 0 8px; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+  .card h3 img { width: 28px; height: 28px; }
+  .card dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; margin: 0; }
+  .card dt { color: var(--muted); }
+  .card dd { margin: 0; }
+  .card dd p { margin: 0 0 4px; }
+  .card .cool { color: var(--muted); font-size: 12px; }
+  .hint { margin-top: 14px; color: var(--muted); font-size: 13px; text-align: center; }
+  kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 1px 6px; background: var(--panel); color: var(--text); }
+  @media (max-width: 520px) {
+    body { padding: 14px 12px; }
+    h1 { font-size: 22px; margin-bottom: 10px; }
+    .select, .hud { gap: 8px; }
+    .hp-name { font-size: 13px; }
+    .hp-name small { display: block; margin-left: 0; }
+    .chip { font-size: 10px; padding: 2px 6px; }
+    #timer { font-size: 12px; }
+    .cards { grid-template-columns: 1fr; }
+    .hint { display: none; }
+  }
+  /* 폰 가로 모드: 경기장은 왼쪽에 화면 높이만큼, 나머지 정보는 오른쪽에 */
+  @media (orientation: landscape) and (max-height: 520px) {
+    body { padding: 10px 16px; }
+    h1 { display: none; }
+    .wrap { max-width: 1000px; grid-template-columns: auto minmax(0, 1fr); column-gap: 16px; align-items: start; }
+    canvas { grid-column: 1; grid-row: 1 / span 5; width: calc(100svh - 24px); margin: 0; position: sticky; top: 10px; }
+    .select, .hud, .start, .cards, .hint { grid-column: 2; }
+    .start { margin: 4px 0 0; max-width: none; }
+    .cards { grid-template-columns: 1fr; }
+    .hint { display: none; }
+  }
+</style>
+</head>
+<body>
+  <h1>Ball Fight <span>UKD</span></h1>
+
+  <div class="wrap">
+    <div class="select">
+      <select id="pick0"></select>
+      <div class="vs">VS</div>
+      <select id="pick1"></select>
+    </div>
+
+    <div class="hud">
+      <div>
+        <div class="hp-name" id="name0"></div>
+        <div class="hp-track"><div class="hp-fill" id="hp0"></div></div>
+        <div class="skills" id="skills0"></div>
+      </div>
+      <div id="timer">0.0s</div>
+      <div class="right">
+        <div class="hp-name" id="name1"></div>
+        <div class="hp-track"><div class="hp-fill" id="hp1"></div></div>
+        <div class="skills" id="skills1"></div>
+      </div>
+    </div>
+
+    <canvas id="arena"></canvas>
+    <button class="start" id="start" type="button">시작</button>
+
+    <div class="cards" id="cards"></div>
+    <div class="hint">경기장 탭, 시작 버튼, 또는 <kbd>Space</kbd>로 시작</div>
+  </div>
+
+<script>
+const SIZE = 600;
+const canvas = document.getElementById('arena');
+const ctx = canvas.getContext('2d');
+const dpr = window.devicePixelRatio || 1;
+canvas.width = SIZE * dpr;
+canvas.height = SIZE * dpr;
+ctx.scale(dpr, dpr);
+
+// ---------- 공통 수치 ----------
+
+const SPEED = { '매우 빠름': 520, '빠름': 420, '보통': 320, '느림': 240, '매우 느림': 170 };
+const BALL_SIZE = { '매우 큼': 62, '큼': 52, '보통': 44, '작음': 36, '매우 작음': 28 };
+const KNOCKBACK_BOOST = 2;      // 넉백 직후 추가 속도 배율 (원래 속도의 1 + 2 = 3배)
+const KNOCKBACK_DECAY = 2.5;    // 초당 추가 배율 감소량 (약 0.8초 후 원래 속도)
+
+const IMAGES = {};
+function loadImage(src) {
+  if (!IMAGES[src]) {
+    const img = new Image();
+    img.src = src;
+    IMAGES[src] = img;
+  }
+  return IMAGES[src];
+}
+
+// ---------- 캐릭터 ----------
+// 새 캐릭터는 이 배열에 추가한다.
+// 훅: init(self) / update(self, other, dt) / onContact(self, other, n)  n = self→other 방향 단위벡터
+//     modifyIncoming(self, dmg, info) → 받는 피해 보정 / onLethal(self) → true면 쓰러짐을 막음
+
+const COIN_TICK = 1;    // 코인 표식 피해 간격 (초)
+const COIN_DAMAGE = 4;  // 코인 표식 1회 피해량
+
+const CHARACTERS = [
+  {
+    name: '고준형', hp: 100, speed: '보통', size: '보통', color: '#f5c542',
+    image: 'images/balls/고준형.png',
+    ability: '경제론',
+    skills: [
+      {
+        name: '호텔 경제론', cooldown: 3,
+        desc: `적과 접촉 시 자신의 HP를 5 잃고 적의 HP를 5 회복시키며 적에게 ‘코인 표식’을 남긴다. 코인 표식이 붙은 적은 ${COIN_TICK}초마다 ${COIN_DAMAGE}의 피해를 받는다.`,
+      },
+      {
+        name: '결론적으로 시장에 경제가 돌았잖아요?', short: '경제가 돌았잖아요', cooldown: 0,
+        desc: '코인 표식이 붙은 적과 다시 접촉하면 표식을 회수하고 적의 HP를 5 흡수한다.',
+      },
+    ],
+    trait: {
+      name: '불교 추천',
+      desc: 'HP가 0이 되면 0.5초 후 HP 108로 단 한 번 부활하고, 모든 공격 수치가 1 증가한다.',
+    },
+    init(self) {
+      self.atkBonus = 0;
+      self.revived = false;
+    },
+    update(self, other, dt) {
+      const mark = other.coinMark;
+      if (!mark || mark.owner !== self) return;
+      mark.timer += dt;
+      while (mark.timer >= COIN_TICK && other.coinMark) {
+        mark.timer -= COIN_TICK;
+        dealDamage(self, other, COIN_DAMAGE + self.atkBonus, { color: '#f5c542' });
+      }
+    },
+    onContact(self, other, n) {
+      if (other.coinMark && other.coinMark.owner === self) {
+        other.coinMark = null;
+        const dealt = dealDamage(self, other, 5 + self.atkBonus, { contact: n, color: '#f5c542' });
+        heal(self, dealt);
+        addText(self, '경제가 돌았잖아요?', '#f5c542');
+      } else if (self.cd[0] <= 0) {
+        self.cd[0] = self.def.skills[0].cooldown;
+        loseHp(self, 5);
+        heal(other, 5);
+        other.coinMark = { owner: self, timer: 0 };
+        addText(self, '호텔 경제론!', '#f5c542');
+      }
+    },
+    onLethal(self) {
+      if (self.revived) return false;
+      self.revived = true;
+      self.reviving = 0.5;
+      self.hp = 0;
+      addText(self, '불교 추천...', '#ffd76a');
+      return true;
+    },
+    onRevive(self) {
+      self.hp = self.maxHp = 108;
+      self.atkBonus = 1;
+      self.img = loadImage('images/balls/고준형부활.png');
+      addText(self, '불교 추천! 부활!', '#ffd76a');
+    },
+  },
+  {
+    name: '허현', hp: 210, speed: '보통', size: '보통', color: '#ff4d5e',
+    image: 'images/balls/허현.png',
+    ability: '광대뼈 돌출',
+    cheekAngle: 35, // 좌우 수평선에서 ±35° 범위가 광대뼈
+    skills: [
+      {
+        name: '광대뼈 돌출', cooldown: 3,
+        desc: '자신의 왼쪽·오른쪽(광대뼈)에 접촉한 적에게 35의 피해를 주고 강하게 넉백시킨다. 광대뼈 부분으로 공격받으면 받는 피해가 절반이 된다.',
+      },
+    ],
+    trait: {
+      name: '억까',
+      desc: '상대의 공격을 맞을 때 1/7 확률로 2배의 피해를 받는다.',
+    },
+    onContact(self, other, n) {
+      if (self.cd[0] > 0 || !isCheek(self, n)) return;
+      self.cd[0] = self.def.skills[0].cooldown;
+      dealDamage(self, other, 35, { contact: n, color: '#ff4d5e' });
+      knockback(other, n);
+      addText(self, '광대뼈 돌출!', '#ff4d5e');
+    },
+    modifyIncoming(self, dmg, info) {
+      // info.contact는 공격자→self 방향이므로 뒤집어서 self 기준으로 본다
+      if (info.contact && isCheek(self, { x: -info.contact.x, y: -info.contact.y })) {
+        dmg /= 2;
+        addText(self, '광대뼈 방어', '#ffb0b8');
+      }
+      if (Math.random() < 1 / 7) {
+        dmg *= 2;
+        addText(self, '억까!', '#ff8a3d');
+      }
+      return dmg;
+    },
+  },
+];
+
+function isCheek(ball, n) {
+  const limit = Math.sin((ball.def.cheekAngle * Math.PI) / 180);
+  return Math.abs(n.y) < limit;
+}
+
+// ---------- 게임 상태 ----------
+
+let picks = [0, 1];
+let balls = [];
+let texts = [];
+let state = 'ready'; // ready | running | over
+let elapsed = 0;
+let winner = null;
+let lastTime = 0;
+let fontScale = 1; // 화면이 작아 캔버스가 축소되면 글자를 키워 읽을 수 있게 한다
+
+function px(size) { return `${Math.round(size * fontScale)}px`; }
+
+function makeBall(def, side) {
+  const radius = BALL_SIZE[def.size];
+  const speed = SPEED[def.speed];
+  const angle = Math.random() * Math.PI * 2;
+  const ball = {
+    def, side, radius, speed,
+    hp: def.hp,
+    maxHp: def.hp,
+    x: side === 0 ? SIZE * 0.25 : SIZE * 0.75,
+    y: radius + Math.random() * (SIZE - radius * 2),
+    vx: Math.cos(angle) * speed,
+    vy: Math.sin(angle) * speed,
+    // 게임 시작 시에도 쿨타임이 적용된다
+    cd: def.skills.map(s => s.cooldown),
+    img: loadImage(def.image),
+    boost: 0,
+    flash: 0,
+    reviving: 0,
+    coinMark: null,
+  };
+  if (def.init) def.init(ball);
+  return ball;
+}
+
+function reset() {
+  balls = picks.map((p, side) => makeBall(CHARACTERS[p], side));
+  texts = [];
+  elapsed = 0;
+  winner = null;
+  renderHudSkills();
+}
+
+function addText(ball, text, color) {
+  texts.push({ x: ball.x + (Math.random() - 0.5) * 16, y: ball.y - ball.radius - 12, text, color, life: 1.1 });
+}
+
+// ---------- 피해 / 회복 ----------
+
+function checkLethal(ball) {
+  if (ball.hp > 0 || ball.reviving > 0) return;
+  if (ball.def.onLethal) ball.def.onLethal(ball);
+}
+
+// 상대의 공격. 실제로 들어간 피해량을 돌려준다
+function dealDamage(attacker, target, amount, info = {}) {
+  if (target.reviving > 0) return 0;
+  let dmg = amount;
+  if (target.def.modifyIncoming) dmg = target.def.modifyIncoming(target, dmg, info);
+  if (dmg <= 0) return 0;
+  target.hp -= dmg;
+  target.flash = 0.15;
+  texts.push({
+    x: target.x + (Math.random() - 0.5) * 24, y: target.y - 6,
+    text: `-${+dmg.toFixed(1)}`, color: info.color || attacker.def.color, life: 0.9,
+  });
+  checkLethal(target);
+  return dmg;
+}
+
+// 공격이 아닌 스스로의 HP 소모
+function loseHp(ball, amount) {
+  if (ball.reviving > 0) return;
+  ball.hp -= amount;
+  checkLethal(ball);
+}
+
+function heal(ball, amount) {
+  if (ball.reviving > 0 || amount <= 0) return;
+  ball.hp = Math.min(ball.maxHp, ball.hp + amount);
+  texts.push({ x: ball.x, y: ball.y + 10, text: `+${+amount.toFixed(1)}`, color: '#6be38a', life: 0.9 });
+}
+
+// ---------- 이동 / 충돌 ----------
+
+function setDirection(ball, dx, dy) {
+  // 방향만 바꾸고 각 공의 고유 속도는 유지, 같은 경로를 반복하지 않도록 약간 흔든다
+  const jitter = (Math.random() - 0.5) * 0.3;
+  const angle = Math.atan2(dy, dx) + jitter;
+  ball.vx = Math.cos(angle) * ball.speed;
+  ball.vy = Math.sin(angle) * ball.speed;
+}
+
+function knockback(ball, n) {
+  setDirection(ball, n.x, n.y);
+  ball.boost = KNOCKBACK_BOOST;
+}
+
+function collideWalls(b) {
+  if (b.x - b.radius < 0) { b.x = b.radius; setDirection(b, Math.abs(b.vx), b.vy); }
+  if (b.x + b.radius > SIZE) { b.x = SIZE - b.radius; setDirection(b, -Math.abs(b.vx), b.vy); }
+  if (b.y - b.radius < 0) { b.y = b.radius; setDirection(b, b.vx, Math.abs(b.vy)); }
+  if (b.y + b.radius > SIZE) { b.y = SIZE - b.radius; setDirection(b, b.vx, -Math.abs(b.vy)); }
+}
+
+function collideBalls(a, b) {
+  if (a.reviving > 0 || b.reviving > 0) return;
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const dist = Math.hypot(dx, dy);
+  const minDist = a.radius + b.radius;
+  if (dist >= minDist || dist === 0) return;
+
+  const nx = dx / dist, ny = dy / dist;
+  const overlap = minDist - dist;
+  a.x -= nx * overlap / 2; a.y -= ny * overlap / 2;
+  b.x += nx * overlap / 2; b.y += ny * overlap / 2;
+
+  // 법선 방향 성분을 반사해 서로 멀어지게 한다
+  const an = a.vx * nx + a.vy * ny;
+  const bn = b.vx * nx + b.vy * ny;
+  setDirection(a, a.vx - (an > 0 ? 2 * an * nx : 0) - nx * a.speed * 0.5,
+                  a.vy - (an > 0 ? 2 * an * ny : 0) - ny * a.speed * 0.5);
+  setDirection(b, b.vx - (bn < 0 ? 2 * bn * nx : 0) + nx * b.speed * 0.5,
+                  b.vy - (bn < 0 ? 2 * bn * ny : 0) + ny * b.speed * 0.5);
+
+  const n = { x: nx, y: ny };
+  if (a.def.onContact) a.def.onContact(a, b, n);
+  if (b.def.onContact) b.def.onContact(b, a, { x: -nx, y: -ny });
+}
+
+function update(dt) {
+  elapsed += dt;
+  balls.forEach((b, i) => {
+    const other = balls[1 - i];
+    b.cd = b.cd.map(c => Math.max(0, c - dt));
+    b.flash = Math.max(0, b.flash - dt);
+
+    if (b.reviving > 0) {
+      b.reviving -= dt;
+      if (b.reviving <= 0) { b.reviving = 0; b.def.onRevive(b); }
+    } else {
+      const mult = 1 + b.boost;
+      b.boost = Math.max(0, b.boost - KNOCKBACK_DECAY * dt);
+      b.x += b.vx * mult * dt;
+      b.y += b.vy * mult * dt;
+      collideWalls(b);
+    }
+    if (b.def.update) b.def.update(b, other, dt);
+  });
+  collideBalls(balls[0], balls[1]);
+
+  const down = balls.filter(b => b.hp <= 0 && b.reviving <= 0);
+  if (down.length) {
+    state = 'over';
+    // 동시에 쓰러지면 체력이 덜 깎인(초과 피해가 적은) 쪽이 승리
+    const [a, b] = balls;
+    winner = down.length === 1 ? balls.find(x => !down.includes(x))
+           : a.hp === b.hp ? null : (a.hp > b.hp ? a : b);
+    for (const ball of balls) { ball.hp = Math.max(0, ball.hp); ball.flash = 0; }
+    setPickersEnabled(true);
+  }
+}
+
+function updateTexts(dt) {
+  for (const t of texts) { t.life -= dt; t.y -= 40 * dt; }
+  texts = texts.filter(t => t.life > 0);
+}
+
+// ---------- 렌더링 ----------
+
+function drawArena() {
+  ctx.fillStyle = '#12151d';
+  ctx.fillRect(0, 0, SIZE, SIZE);
+  ctx.strokeStyle = '#1b1f2a';
+  ctx.lineWidth = 1;
+  for (let i = 50; i < SIZE; i += 50) {
+    ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, SIZE); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(SIZE, i); ctx.stroke();
+  }
+}
+
+function drawBall(b) {
+  const { x, y, radius: r } = b;
+  ctx.save();
+  if (b.reviving > 0) ctx.globalAlpha = 0.35 + 0.35 * Math.sin(elapsed * 40);
+
+  ctx.shadowColor = b.def.color;
+  ctx.shadowBlur = 18;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = b.def.color;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  if (b.img.complete && b.img.naturalWidth) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, r - 2, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(b.img, x - r + 2, y - r + 2, (r - 2) * 2, (r - 2) * 2);
+    ctx.restore();
+  }
+
+  if (b.flash > 0) {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+    ctx.fill();
+  }
+
+  ctx.beginPath();
+  ctx.arc(x, y, r - 1, 0, Math.PI * 2);
+  ctx.strokeStyle = b.def.color;
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // 광대뼈 영역 표시 (스킬 준비 시 밝게)
+  if (b.def.cheekAngle) {
+    const a = (b.def.cheekAngle * Math.PI) / 180;
+    ctx.strokeStyle = b.cd[0] <= 0 ? '#ffd0d5' : 'rgba(255, 208, 213, 0.35)';
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(x, y, r + 4, -a, a); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, y, r + 4, Math.PI - a, Math.PI + a); ctx.stroke();
+  }
+  ctx.restore();
+
+  if (b.coinMark) {
+    const coin = loadImage('images/balls/고준형코인표식.png');
+    const cr = r * 0.42;
+    const ang = elapsed * 3;
+    const cx = x + Math.cos(ang) * r * 0.85;
+    const cy = y + Math.sin(ang) * r * 0.85;
+    if (coin.complete && coin.naturalWidth) {
+      ctx.save();
+      ctx.shadowColor = '#f5c542';
+      ctx.shadowBlur = 12;
+      ctx.drawImage(coin, cx - cr, cy - cr, cr * 2, cr * 2);
+      ctx.restore();
+    }
+  }
+
+  ctx.fillStyle = 'rgba(10, 12, 18, 0.75)';
+  const label = `${Math.ceil(Math.max(0, b.hp))}`;
+  ctx.font = `bold ${px(12)} sans-serif`;
+  const w = ctx.measureText(label).width + 10;
+  const h = 16 * fontScale;
+  // roundRect는 구형 iOS Safari에 없어서 직접 그린다
+  ctx.beginPath();
+  ctx.arc(x - w / 2 + h / 2, y + r - 2, h / 2, Math.PI / 2, Math.PI * 1.5);
+  ctx.arc(x + w / 2 - h / 2, y + r - 2, h / 2, -Math.PI / 2, Math.PI / 2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, x, y + r - 2);
+}
+
+function drawTexts() {
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (const t of texts) {
+    ctx.globalAlpha = Math.max(0, Math.min(1, t.life));
+    ctx.font = `bold ${px(t.text.startsWith('-') || t.text.startsWith('+') ? 15 : 16)} sans-serif`;
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(10, 12, 18, 0.8)';
+    ctx.strokeText(t.text, t.x, t.y);
+    ctx.fillStyle = t.color;
+    ctx.fillText(t.text, t.x, t.y);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawOverlay(title, sub, color) {
+  ctx.fillStyle = 'rgba(10, 12, 18, 0.7)';
+  ctx.fillRect(0, 0, SIZE, SIZE);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = color || '#e8eaf0';
+  ctx.font = `bold ${px(40)} sans-serif`;
+  ctx.fillText(title, SIZE / 2, SIZE / 2 - 16 * fontScale);
+  ctx.fillStyle = '#8a90a2';
+  ctx.font = px(18) + ' sans-serif';
+  ctx.fillText(sub, SIZE / 2, SIZE / 2 + 30 * fontScale);
+}
+
+function render() {
+  fontScale = Math.min(1.8, Math.max(1, SIZE / (canvas.clientWidth || SIZE)));
+  drawArena();
+  balls.forEach(drawBall);
+  drawTexts();
+
+  if (state === 'ready') {
+    drawOverlay('Ball Fight UKD', '탭하거나 시작 버튼을 눌러 시작');
+  } else if (state === 'over') {
+    if (winner) drawOverlay(`${winner.def.name} 승리!`, `${elapsed.toFixed(1)}초 · 탭해서 다시 시작`, winner.def.color);
+    else drawOverlay('무승부!', '탭해서 다시 시작');
+  }
+
+  balls.forEach((b, i) => {
+    const fill = document.getElementById(`hp${i}`);
+    fill.style.width = `${(Math.max(0, b.hp) / b.maxHp) * 100}%`;
+    fill.style.background = b.def.color;
+    document.getElementById(`name${i}`).innerHTML =
+      `${b.def.name}<small>${Math.ceil(Math.max(0, b.hp))} / ${b.maxHp}</small>`;
+    b.def.skills.forEach((s, k) => {
+      const chip = document.getElementById(`chip${i}-${k}`);
+      if (!s.cooldown) return;
+      chip.querySelector('.cd').style.width = `${(b.cd[k] / s.cooldown) * 100}%`;
+      chip.classList.toggle('ready', b.cd[k] <= 0);
+    });
+  });
+  document.getElementById('timer').textContent = `${elapsed.toFixed(1)}s`;
+
+  const label = { ready: '시작', running: '경기 중…', over: '다시 시작' }[state];
+  if (startBtn.textContent !== label) startBtn.textContent = label;
+  startBtn.disabled = state === 'running';
+}
+
+function renderHudSkills() {
+  balls.forEach((b, i) => {
+    document.getElementById(`skills${i}`).innerHTML = b.def.skills.map((s, k) => `
+      <div class="chip ${s.cooldown ? '' : 'ready'}" id="chip${i}-${k}" style="color:${b.def.color}">
+        <div class="cd"></div><span>${s.short || s.name}</span>
+      </div>`).join('');
+  });
+}
+
+function renderCards() {
+  document.getElementById('cards').innerHTML = picks.map(p => {
+    const d = CHARACTERS[p];
+    return `
+    <div class="card">
+      <h3 style="color:${d.color}"><img src="${d.image}" alt="">${d.name}</h3>
+      <dl>
+        <dt>HP</dt><dd>${d.hp}</dd>
+        <dt>속도</dt><dd>${d.speed}</dd>
+        <dt>크기</dt><dd>${d.size}</dd>
+        <dt>능력</dt><dd>${d.ability}</dd>
+        <dt>스킬</dt><dd>${d.skills.map(s => `
+          <p><b>${s.name}</b> <span class="cool">${s.cooldown ? `쿨타임 ${s.cooldown}초` : '조건 발동'}</span><br>${s.desc}</p>`).join('')}
+        </dd>
+        <dt>특성</dt><dd><b>${d.trait.name}</b> — ${d.trait.desc}</dd>
+      </dl>
+    </div>`;
+  }).join('');
+}
+
+// ---------- 캐릭터 선택 ----------
+
+function setPickersEnabled(on) {
+  [0, 1].forEach(i => { document.getElementById(`pick${i}`).disabled = !on; });
+}
+
+[0, 1].forEach(i => {
+  const sel = document.getElementById(`pick${i}`);
+  sel.innerHTML = CHARACTERS.map((c, k) => `<option value="${k}">${c.name}</option>`).join('');
+  sel.value = picks[i];
+  sel.addEventListener('change', () => {
+    picks[i] = +sel.value;
+    sel.blur();
+    state = 'ready';
+    reset();
+    renderCards();
+  });
+});
+
+function loop(now) {
+  const dt = Math.min((now - lastTime) / 1000, 1 / 30);
+  lastTime = now;
+  if (state === 'running') update(dt);
+  updateTexts(dt);
+  render();
+  requestAnimationFrame(loop);
+}
+
+function startGame() {
+  if (state === 'running') return;
+  if (state === 'over') reset();
+  state = 'running';
+  setPickersEnabled(false);
+}
+
+const startBtn = document.getElementById('start');
+startBtn.addEventListener('click', startGame);
+canvas.addEventListener('pointerdown', startGame);
+document.addEventListener('keydown', e => {
+  if (e.code !== 'Space') return;
+  e.preventDefault();
+  startGame();
+});
+
+reset();
+renderCards();
+requestAnimationFrame(now => { lastTime = now; loop(now); });
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+# 원본 사진은 공개하지 않는다 (공 모양으로 자른 images/balls/만 배포)
+images/*
+!images/balls/
+.DS_Store
+.playwright-mcp/
+게임규칙.md
