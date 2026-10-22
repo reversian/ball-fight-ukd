@@ -59,23 +59,20 @@
   .hp-fill { height: 100%; width: 100%; transition: width 0.15s; }
   .right { text-align: right; }
   .right .hp-fill { margin-left: auto; }
-  .skills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
-  .right .skills { justify-content: flex-end; }
-  .chip {
-    position: relative;
-    overflow: hidden;
-    font-size: 11px;
-    padding: 2px 7px;
-    border-radius: 10px;
-    border: 1px solid var(--line);
-    background: var(--panel);
-    color: var(--text);
-    white-space: nowrap;
-  }
-  .chip .cd { position: absolute; inset: 0 auto 0 0; background: rgba(255, 255, 255, 0.08); }
-  .chip span { position: relative; }
-  .chip.ready { border-color: currentColor; }
   #timer { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px; padding-top: 2px; }
+  .mid { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .mute {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    font-size: 16px;
+    line-height: 1;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
   canvas {
     /* 가로 화면(폰 가로 모드)에서도 경기장이 화면 높이 안에 들어오게 한다 */
     width: min(100%, max(280px, calc(100svh - 230px)));
@@ -123,7 +120,6 @@
     .select, .hud { gap: 8px; }
     .hp-name { font-size: 13px; }
     .hp-name small { display: block; margin-left: 0; }
-    .chip { font-size: 10px; padding: 2px 6px; }
     #timer { font-size: 12px; }
     .cards { grid-template-columns: 1fr; }
     .hint { display: none; }
@@ -155,13 +151,14 @@
       <div>
         <div class="hp-name" id="name0"></div>
         <div class="hp-track"><div class="hp-fill" id="hp0"></div></div>
-        <div class="skills" id="skills0"></div>
       </div>
-      <div id="timer">0.0s</div>
+      <div class="mid">
+        <div id="timer">0.0s</div>
+        <button class="mute" id="mute" type="button" aria-label="소리 끄기">🔊</button>
+      </div>
       <div class="right">
         <div class="hp-name" id="name1"></div>
         <div class="hp-track"><div class="hp-fill" id="hp1"></div></div>
-        <div class="skills" id="skills1"></div>
       </div>
     </div>
 
@@ -188,6 +185,113 @@ const BALL_SIZE = { '매우 큼': 62, '큼': 52, '보통': 44, '작음': 36, '�
 const KNOCKBACK_BOOST = 2;      // 넉백 직후 추가 속도 배율 (원래 속도의 1 + 2 = 3배)
 const KNOCKBACK_DECAY = 2.5;    // 초당 추가 배율 감소량 (약 0.8초 후 원래 속도)
 
+// ---------- 효과음 ----------
+// 파일 없이 Web Audio로 직접 합성한다. 브라우저 정책상 첫 탭/클릭(시작) 때 켜진다.
+
+const sound = (() => {
+  let ac = null, master = null, noiseBuf = null;
+  let muted = false;
+  try { muted = localStorage.getItem('muted') === '1'; } catch (e) {}
+  const last = {};
+
+  function unlock() {
+    if (!ac) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      ac = new AC();
+      master = ac.createGain();
+      master.gain.value = 0.6;
+      master.connect(ac.destination);
+      noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
+      const data = noiseBuf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    }
+    if (ac.state === 'suspended') ac.resume();
+  }
+
+  function envelope(g, t, vol, dur) {
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  }
+
+  function tone(freq, dur, { type = 'sine', vol = 0.2, to = 0, delay = 0 } = {}) {
+    const t = ac.currentTime + delay;
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t);
+    if (to) o.frequency.exponentialRampToValueAtTime(to, t + dur);
+    envelope(g, t, vol, dur);
+    o.connect(g).connect(master);
+    o.start(t);
+    o.stop(t + dur + 0.02);
+  }
+
+  function noise(dur, { freq = 1000, vol = 0.2, delay = 0 } = {}) {
+    const t = ac.currentTime + delay;
+    const src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    src.buffer = noiseBuf;
+    f.type = 'bandpass';
+    f.frequency.value = freq;
+    envelope(g, t, vol, dur);
+    src.connect(f).connect(g).connect(master);
+    src.start(t);
+    src.stop(t + dur + 0.02);
+  }
+
+  const SFX = {
+    wall: () => tone(260, 0.05, { type: 'triangle', vol: 0.05 }),
+    bump: () => { noise(0.08, { freq: 400, vol: 0.25 }); tone(140, 0.12, { to: 70, vol: 0.2 }); },
+    hit: () => noise(0.06, { freq: 1500, vol: 0.15 }),
+    start: () => { tone(523, 0.1, { type: 'square', vol: 0.06 }); tone(784, 0.2, { type: 'square', vol: 0.06, delay: 0.1 }); },
+    win: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, i === 3 ? 0.6 : 0.15, { type: 'square', vol: 0.07, delay: i * 0.12 })),
+    draw: () => { tone(392, 0.3, { type: 'triangle', vol: 0.12 }); tone(370, 0.5, { type: 'triangle', vol: 0.12, delay: 0.3 }); },
+    // 고준형
+    coin: () => { tone(988, 0.08, { type: 'square', vol: 0.06 }); tone(1319, 0.3, { type: 'square', vol: 0.06, delay: 0.08 }); },
+    coinTick: () => tone(1568, 0.07, { type: 'triangle', vol: 0.06 }),
+    absorb: () => tone(300, 0.25, { to: 900, type: 'sawtooth', vol: 0.05 }),
+    down: () => tone(400, 0.45, { to: 100, type: 'sawtooth', vol: 0.08 }),
+    revive: () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.35, { type: 'triangle', vol: 0.12, delay: i * 0.07 })),
+    // 허현
+    cheek: () => { noise(0.1, { freq: 300, vol: 0.3 }); tone(180, 0.18, { to: 60, type: 'square', vol: 0.1 }); },
+    block: () => tone(1200, 0.08, { type: 'triangle', vol: 0.08 }),
+    ukka: () => { tone(110, 0.3, { type: 'sawtooth', vol: 0.08 }); tone(117, 0.3, { type: 'sawtooth', vol: 0.08 }); },
+    // 박건
+    domain: () => { tone(120, 0.6, { to: 240, vol: 0.12 }); noise(0.6, { freq: 600, vol: 0.05 }); },
+    domainHit: info => {
+      const f = 200 + (info.step || 1) * 80;
+      tone(f, 0.3, { to: f / 2, type: 'square', vol: 0.06 + (info.step || 1) * 0.02 });
+      noise(0.2, { freq: 500, vol: 0.2 });
+    },
+    // 이민규
+    snotFire: () => tone(600, 0.08, { to: 200, vol: 0.15 }),
+    snotHit: () => { noise(0.15, { freq: 250, vol: 0.3 }); tone(250, 0.12, { to: 120, type: 'triangle', vol: 0.12 }); },
+    // 양서지
+    alpha: () => { noise(0.12, { freq: 800, vol: 0.3 }); tone(330, 0.2, { to: 110, type: 'sawtooth', vol: 0.1 }); },
+    // 함태준
+    colosseum: () => { noise(0.8, { freq: 150, vol: 0.3 }); tone(80, 0.8, { to: 50, type: 'square', vol: 0.08 }); },
+    wallHit: () => { noise(0.07, { freq: 200, vol: 0.25 }); tone(90, 0.08, { type: 'square', vol: 0.06 }); },
+    tackle: () => { noise(0.1, { freq: 600, vol: 0.25 }); tone(220, 0.15, { to: 90, type: 'square', vol: 0.08 }); },
+  };
+
+  function play(name, info = {}) {
+    if (!ac || muted || !SFX[name]) return;
+    // 같은 소리가 한 순간에 몰려 시끄러워지지 않게 한다
+    const now = ac.currentTime;
+    if (last[name] && now - last[name] < 0.04) return;
+    last[name] = now;
+    SFX[name](info);
+  }
+
+  function toggleMute() {
+    muted = !muted;
+    try { localStorage.setItem('muted', muted ? '1' : '0'); } catch (e) {}
+    return muted;
+  }
+
+  return { unlock, play, toggleMute, isMuted: () => muted };
+})();
+
 const IMAGES = {};
 function loadImage(src) {
   if (!IMAGES[src]) {
@@ -202,9 +306,35 @@ function loadImage(src) {
 // 새 캐릭터는 이 배열에 추가한다.
 // 훅: init(self) / update(self, other, dt) / onContact(self, other, n)  n = self→other 방향 단위벡터
 //     modifyIncoming(self, dmg, info) → 받는 피해 보정 / onLethal(self) → true면 쓰러짐을 막음
+//     drawUnder(self) → 공보다 아래에 그릴 효과 (배경 영역 등)
+//     onWall(self) → 자신이 벽에 닿았을 때 / onEnemyWall(self, enemy) → 상대가 벽에 닿았을 때
 
 const COIN_TICK = 1;    // 코인 표식 피해 간격 (초)
 const COIN_DAMAGE = 4;  // 코인 표식 1회 피해량
+const COIN_HEAL = 1;    // 코인 표식이 피해를 줄 때마다 고준형이 회복하는 HP
+const COIN_RECOVER_DELAY = 3; // 표식이 붙고 이 시간이 지나야 회수(스킬 2) 가능
+
+const DOMAIN_IMAGE = 'images/balls/박건배경영역.jpg';
+const DOMAIN_GROW_SPEED = 160; // 배경 반지름이 초당 커지는 양 (px)
+const DOMAIN_STEP = 80;        // 배경이 이만큼 커질 때마다 피해 한 단계 증가 (0.5초)
+const DOMAIN_DAMAGE_STEP = 8;  // 단계당 피해 (8, 16, 24, 32, 40)
+const DOMAIN_MAX_STEPS = 5;
+
+const COLOSSEUM_IMAGE = 'images/balls/함태준콜로세움.jpg';
+const COLOSSEUM_DELAY = 3;       // 함태준: 게임 시작 3초 후부터 콜로세움 적용
+const COLOSSEUM_WALL_DAMAGE = 2; // 상대가 벽에 닿을 때마다 주는 피해
+const COLOSSEUM_WALL_WIDTH = 10; // 벽돌 벽 두께 (px)
+
+const ALPHA_DAMAGE_STEP = 2;      // 양서지: 부딪힐 때마다 늘어나는 피해 (0 → 2 → 4 …)
+const ALPHA_KNOCKBACK_BOOST = 2;  // 양서지 넉백: 원래 속도의 1 + 2 = 3배
+
+const SNOT_IMAGE = 'images/balls/이민규투사체.png';
+const SNOT_SPEED = SPEED['보통'];
+const SNOT_RADIUS = 14;
+const SNOT_DAMAGE = 18;
+const SNOT_MAX_WALL_HITS = 3; // 벽에 2번 튕기고 3번째로 부딪히면 사라진다
+const SLOW_DURATION = 1;      // 코딱지에 맞으면 1초 동안
+const SLOW_FACTOR = 0.5;      // 원래 속도의 절반으로 느려진다
 
 const CHARACTERS = [
   {
@@ -213,12 +343,12 @@ const CHARACTERS = [
     ability: '경제론',
     skills: [
       {
-        name: '호텔 경제론', cooldown: 3,
-        desc: `적과 접촉 시 자신의 HP를 5 잃고 적의 HP를 5 회복시키며 적에게 ‘코인 표식’을 남긴다. 코인 표식이 붙은 적은 ${COIN_TICK}초마다 ${COIN_DAMAGE}의 피해를 받는다.`,
+        name: '호텔 경제론', cooldown: 0,
+        desc: `적과 접촉 시 자신의 HP를 5 잃고 적의 HP를 5 회복시키며 적에게 ‘코인 표식’을 남긴다. 코인 표식이 붙은 적은 ${COIN_TICK}초마다 ${COIN_DAMAGE}의 피해를 받고, 그때마다 고준형은 HP를 ${COIN_HEAL} 회복한다.`,
       },
       {
-        name: '결론적으로 시장에 경제가 돌았잖아요?', short: '경제가 돌았잖아요', cooldown: 0,
-        desc: '코인 표식이 붙은 적과 다시 접촉하면 표식을 회수하고 적의 HP를 5 흡수한다.',
+        name: '결론적으로 시장에 경제가 돌았잖아요?', cooldown: 0,
+        desc: `코인 표식이 붙은 지 ${COIN_RECOVER_DELAY}초가 지난 적과 접촉하면 표식을 회수하고 적의 HP를 5 흡수한다. ${COIN_RECOVER_DELAY}초가 안 됐으면 아무 일도 일어나지 않는다.`,
       },
     ],
     trait: {
@@ -233,38 +363,39 @@ const CHARACTERS = [
       const mark = other.coinMark;
       if (!mark || mark.owner !== self) return;
       mark.timer += dt;
+      mark.age += dt;
       while (mark.timer >= COIN_TICK && other.coinMark) {
         mark.timer -= COIN_TICK;
-        dealDamage(self, other, COIN_DAMAGE + self.atkBonus, { color: '#f5c542' });
+        const dealt = dealDamage(self, other, COIN_DAMAGE + self.atkBonus, { source: 'coinMark', sound: 'coinTick', color: '#f5c542' });
+        if (dealt > 0) heal(self, COIN_HEAL);
       }
     },
     onContact(self, other, n) {
       if (other.coinMark && other.coinMark.owner === self) {
+        if (other.coinMark.age < COIN_RECOVER_DELAY) return;
         other.coinMark = null;
-        const dealt = dealDamage(self, other, 5 + self.atkBonus, { contact: n, color: '#f5c542' });
+        const dealt = dealDamage(self, other, 5 + self.atkBonus, { contact: n, sound: 'absorb', color: '#f5c542' });
         heal(self, dealt);
-        addText(self, '경제가 돌았잖아요?', '#f5c542');
-      } else if (self.cd[0] <= 0) {
-        self.cd[0] = self.def.skills[0].cooldown;
+      } else {
         loseHp(self, 5);
         heal(other, 5);
-        other.coinMark = { owner: self, timer: 0 };
-        addText(self, '호텔 경제론!', '#f5c542');
+        other.coinMark = { owner: self, timer: 0, age: 0 };
+        sound.play('coin');
       }
     },
     onLethal(self) {
       if (self.revived) return false;
       self.revived = true;
       self.reviving = 0.5;
+      sound.play('down');
       self.hp = 0;
-      addText(self, '불교 추천...', '#ffd76a');
       return true;
     },
     onRevive(self) {
       self.hp = self.maxHp = 108;
       self.atkBonus = 1;
       self.img = loadImage('images/balls/고준형부활.png');
-      addText(self, '불교 추천! 부활!', '#ffd76a');
+      sound.play('revive');
     },
   },
   {
@@ -274,8 +405,8 @@ const CHARACTERS = [
     cheekAngle: 35, // 좌우 수평선에서 ±35° 범위가 광대뼈
     skills: [
       {
-        name: '광대뼈 돌출', cooldown: 3,
-        desc: '자신의 왼쪽·오른쪽(광대뼈)에 접촉한 적에게 35의 피해를 주고 강하게 넉백시킨다. 광대뼈 부분으로 공격받으면 받는 피해가 절반이 된다.',
+        name: '광대뼈 돌출', cooldown: 0,
+        desc: '자신의 왼쪽·오른쪽(광대뼈)에 접촉한 적에게 35의 피해를 주고 강하게 넉백시킨다. 광대뼈 부분으로 공격받으면 받는 피해가 절반이 된다. 단, 코인 표식 피해는 절반이 되지 않는다.',
       },
     ],
     trait: {
@@ -283,23 +414,190 @@ const CHARACTERS = [
       desc: '상대의 공격을 맞을 때 1/7 확률로 2배의 피해를 받는다.',
     },
     onContact(self, other, n) {
-      if (self.cd[0] > 0 || !isCheek(self, n)) return;
-      self.cd[0] = self.def.skills[0].cooldown;
-      dealDamage(self, other, 35, { contact: n, color: '#ff4d5e' });
+      if (!isCheek(self, n)) return;
+      dealDamage(self, other, 35, { contact: n, sound: 'cheek', color: '#ff4d5e' });
       knockback(other, n);
-      addText(self, '광대뼈 돌출!', '#ff4d5e');
     },
     modifyIncoming(self, dmg, info) {
       // info.contact는 공격자→self 방향이므로 뒤집어서 self 기준으로 본다
-      if (info.contact && isCheek(self, { x: -info.contact.x, y: -info.contact.y })) {
+      // 코인 표식 피해는 광대뼈로 줄일 수 없다
+      if (info.contact && info.source !== 'coinMark' && isCheek(self, { x: -info.contact.x, y: -info.contact.y })) {
         dmg /= 2;
-        addText(self, '광대뼈 방어', '#ffb0b8');
+        sound.play('block');
       }
       if (Math.random() < 1 / 7) {
         dmg *= 2;
-        addText(self, '억까!', '#ff8a3d');
+        sound.play('ukka');
       }
       return dmg;
+    },
+  },
+  {
+    name: '박건', hp: 190, speed: '보통', size: '보통', color: '#9b7bff',
+    image: 'images/balls/박건.png',
+    ability: '지배자',
+    skills: [
+      {
+        name: '권한 행사', cooldown: 4.5,
+        desc: '쿨타임이 끝나면 자신을 중심으로 넓어지는 배경을 소환한다. 배경은 박건을 따라다니며 상대와 닿을 때까지 커지고, 닿으면 사라진다. 사라진 때부터 쿨타임이 다시 돈다.',
+      },
+    ],
+    trait: {
+      name: '의식',
+      desc: `배경이 상대에 닿으면 배경 크기에 따라 ${DOMAIN_DAMAGE_STEP}~${DOMAIN_DAMAGE_STEP * DOMAIN_MAX_STEPS}의 피해를 준다. 배경은 0.5초마다 한 단계씩 커지며 피해가 8, 16, 24, 32, 40으로 늘어난다.`,
+    },
+    init(self) {
+      self.domain = null;
+      loadImage(DOMAIN_IMAGE);
+    },
+    update(self, other, dt) {
+      if (!self.domain) {
+        if (self.cd[0] <= 0) { self.domain = { r: self.radius }; sound.play('domain'); }
+        return;
+      }
+      self.domain.r += DOMAIN_GROW_SPEED * dt;
+      // 부활 대기 중인 상대에게는 닿지 않고 계속 커진다
+      if (other.reviving > 0) return;
+      const dist = Math.hypot(other.x - self.x, other.y - self.y);
+      if (dist - other.radius > self.domain.r) return;
+      const step = Math.min(DOMAIN_MAX_STEPS, 1 + Math.floor((self.domain.r - self.radius) / DOMAIN_STEP));
+      dealDamage(self, other, DOMAIN_DAMAGE_STEP * step, { source: 'domain', sound: 'domainHit', step, color: self.def.color });
+      self.domain = null;
+      self.cd[0] = self.def.skills[0].cooldown;
+    },
+    drawUnder(self) {
+      if (!self.domain) return;
+      const { x, y } = self;
+      const r = self.domain.r;
+      const img = loadImage(DOMAIN_IMAGE);
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.globalAlpha = 0.4;
+      if (img.complete && img.naturalWidth) ctx.drawImage(img, x - r, y - r, r * 2, r * 2);
+      else { ctx.fillStyle = self.def.color; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
+      ctx.restore();
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.strokeStyle = self.def.color;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    },
+  },
+  {
+    name: '이민규', hp: 180, speed: '보통', size: '작음', color: '#7ccf5a',
+    image: 'images/balls/이민규.png',
+    ability: '코딱지',
+    skills: [
+      {
+        name: '코딱지!!', cooldown: 3,
+        desc: `적의 방향으로 코딱지를 발사한다. 코딱지는 직선으로 날아가며 벽에 최대 2번 튕기고, 3번째로 벽에 부딪히면 사라진다. 적과 닿으면 ${SNOT_DAMAGE}의 피해를 주고 사라진다.`,
+      },
+    ],
+    trait: {
+      name: '꼬마',
+      desc: `코딱지를 맞은 적은 ${SLOW_DURATION}초 동안 속도가 절반으로 느려진다.`,
+    },
+    init() {
+      loadImage(SNOT_IMAGE);
+    },
+    update(self, other, dt) {
+      if (self.cd[0] > 0) return;
+      self.cd[0] = self.def.skills[0].cooldown;
+      const dx = other.x - self.x, dy = other.y - self.y;
+      const d = Math.hypot(dx, dy) || 1;
+      sound.play('snotFire');
+      projectiles.push({
+        owner: self,
+        x: self.x + (dx / d) * self.radius, y: self.y + (dy / d) * self.radius,
+        vx: (dx / d) * SNOT_SPEED, vy: (dy / d) * SNOT_SPEED,
+        r: SNOT_RADIUS, wallHits: 0, img: SNOT_IMAGE,
+        onHit(target, n) {
+          dealDamage(self, target, SNOT_DAMAGE, { contact: n, source: 'snot', projectile: true, sound: 'snotHit', color: self.def.color });
+          target.slow = SLOW_DURATION;
+        },
+      });
+    },
+  },
+  {
+    name: '양서지', hp: 210, speed: '보통', size: '보통', color: '#4ea8ff',
+    image: 'images/balls/양서지.png',
+    ability: '우월',
+    skills: [
+      {
+        name: '알파', cooldown: 0,
+        desc: '적과 부딪힐 때마다 피해를 주고, 상대를 원래 속도의 3배로 튕겨낸다. 피해는 0에서 시작해 부딪힐 때마다 2씩 늘어난다 (0 → 2 → 4 → 6 …, 상한 없음).',
+      },
+    ],
+    trait: {
+      name: '왕가남',
+      desc: '몸으로 부딪히는 접촉 공격의 피해가 1 줄어든다. 코인 표식, 배경, 코딱지, 벽 피해는 줄지 않는다.',
+    },
+    init(self) {
+      self.alphaCount = 0;
+    },
+    onContact(self, other, n) {
+      dealDamage(self, other, ALPHA_DAMAGE_STEP * self.alphaCount, { contact: n, sound: 'alpha', color: self.def.color });
+      self.alphaCount++;
+      knockback(other, n, ALPHA_KNOCKBACK_BOOST);
+    },
+    modifyIncoming(self, dmg, info) {
+      // 몸끼리 부딪혀서 들어오는 공격만 줄인다 (투사체·지속 피해·벽 피해 제외)
+      if (!info.contact || info.projectile) return dmg;
+      return Math.max(0, dmg - 1);
+    },
+  },
+  {
+    name: '함태준', hp: 205, speed: '느림', size: '보통', color: '#d9773f',
+    image: 'images/balls/함태준.png',
+    ability: '콜로세움',
+    skills: [
+      {
+        name: '콜로세움의 왕', cooldown: 0,
+        desc: `게임 시작 ${COLOSSEUM_DELAY}초 후부터 경기장 벽이 벽돌 벽으로 바뀌고, 적이 벽에 닿을 때마다 ${COLOSSEUM_WALL_DAMAGE}의 피해를 준다.`,
+      },
+    ],
+    trait: {
+      name: '콜로세움의 왕',
+      desc: '적과 접촉하면 5의 피해를 주고 강하게 튕겨낸다. 자신이 벽에 닿으면 경기장 중앙 방향으로 이동한다.',
+    },
+    init() {
+      loadImage(COLOSSEUM_IMAGE);
+    },
+    update(self) {
+      if (!self.colosseum && elapsed >= COLOSSEUM_DELAY) {
+        self.colosseum = true;
+        sound.play('colosseum');
+      }
+    },
+    onContact(self, other, n) {
+      dealDamage(self, other, 5, { contact: n, sound: 'tackle', color: self.def.color });
+      knockback(other, n);
+    },
+    onWall(self) {
+      setDirection(self, SIZE / 2 - self.x, SIZE / 2 - self.y);
+    },
+    onEnemyWall(self, enemy) {
+      if (!self.colosseum) return;
+      dealDamage(self, enemy, COLOSSEUM_WALL_DAMAGE, { source: 'colosseum', sound: 'wallHit', color: self.def.color });
+    },
+    drawUnder(self) {
+      if (!self.colosseum) return;
+      const img = loadImage(COLOSSEUM_IMAGE);
+      const w = COLOSSEUM_WALL_WIDTH;
+      ctx.save();
+      ctx.fillStyle = '#9c4a2c';
+      if (img.complete && img.naturalWidth) {
+        const pattern = ctx.createPattern(img, 'repeat');
+        if (pattern.setTransform) pattern.setTransform(new DOMMatrix().scale(0.15));
+        ctx.fillStyle = pattern;
+      }
+      ctx.fillRect(0, 0, SIZE, w);
+      ctx.fillRect(0, SIZE - w, SIZE, w);
+      ctx.fillRect(0, w, w, SIZE - w * 2);
+      ctx.fillRect(SIZE - w, w, w, SIZE - w * 2);
+      ctx.restore();
     },
   },
 ];
@@ -318,6 +616,8 @@ let state = 'ready'; // ready | running | over
 let elapsed = 0;
 let winner = null;
 let lastTime = 0;
+let projectiles = [];
+let touching = false; // 두 공이 맞닿아 있는 동안 접촉 스킬이 매 프레임 반복 발동하지 않게 한다
 let fontScale = 1; // 화면이 작아 캔버스가 축소되면 글자를 키워 읽을 수 있게 한다
 
 function px(size) { return `${Math.round(size * fontScale)}px`; }
@@ -340,6 +640,7 @@ function makeBall(def, side) {
     boost: 0,
     flash: 0,
     reviving: 0,
+    slow: 0,
     coinMark: null,
   };
   if (def.init) def.init(ball);
@@ -351,11 +652,8 @@ function reset() {
   texts = [];
   elapsed = 0;
   winner = null;
-  renderHudSkills();
-}
-
-function addText(ball, text, color) {
-  texts.push({ x: ball.x + (Math.random() - 0.5) * 16, y: ball.y - ball.radius - 12, text, color, life: 1.1 });
+  touching = false;
+  projectiles = [];
 }
 
 // ---------- 피해 / 회복 ----------
@@ -373,6 +671,7 @@ function dealDamage(attacker, target, amount, info = {}) {
   if (dmg <= 0) return 0;
   target.hp -= dmg;
   target.flash = 0.15;
+  sound.play(info.sound || 'hit', info);
   texts.push({
     x: target.x + (Math.random() - 0.5) * 24, y: target.y - 6,
     text: `-${+dmg.toFixed(1)}`, color: info.color || attacker.def.color, life: 0.9,
@@ -404,16 +703,20 @@ function setDirection(ball, dx, dy) {
   ball.vy = Math.sin(angle) * ball.speed;
 }
 
-function knockback(ball, n) {
+function knockback(ball, n, boost = KNOCKBACK_BOOST) {
   setDirection(ball, n.x, n.y);
-  ball.boost = KNOCKBACK_BOOST;
+  ball.boost = boost;
 }
 
 function collideWalls(b) {
+  let bounced = true;
   if (b.x - b.radius < 0) { b.x = b.radius; setDirection(b, Math.abs(b.vx), b.vy); }
-  if (b.x + b.radius > SIZE) { b.x = SIZE - b.radius; setDirection(b, -Math.abs(b.vx), b.vy); }
-  if (b.y - b.radius < 0) { b.y = b.radius; setDirection(b, b.vx, Math.abs(b.vy)); }
-  if (b.y + b.radius > SIZE) { b.y = SIZE - b.radius; setDirection(b, b.vx, -Math.abs(b.vy)); }
+  else if (b.x + b.radius > SIZE) { b.x = SIZE - b.radius; setDirection(b, -Math.abs(b.vx), b.vy); }
+  else bounced = false;
+  if (b.y - b.radius < 0) { b.y = b.radius; setDirection(b, b.vx, Math.abs(b.vy)); bounced = true; }
+  else if (b.y + b.radius > SIZE) { b.y = SIZE - b.radius; setDirection(b, b.vx, -Math.abs(b.vy)); bounced = true; }
+  if (bounced) sound.play('wall');
+  return bounced;
 }
 
 function collideBalls(a, b) {
@@ -421,6 +724,7 @@ function collideBalls(a, b) {
   const dx = b.x - a.x, dy = b.y - a.y;
   const dist = Math.hypot(dx, dy);
   const minDist = a.radius + b.radius;
+  if (dist >= minDist + 1) touching = false;
   if (dist >= minDist || dist === 0) return;
 
   const nx = dx / dist, ny = dy / dist;
@@ -436,15 +740,40 @@ function collideBalls(a, b) {
   setDirection(b, b.vx - (bn < 0 ? 2 * bn * nx : 0) + nx * b.speed * 0.5,
                   b.vy - (bn < 0 ? 2 * bn * ny : 0) + ny * b.speed * 0.5);
 
+  if (touching) return;
+  touching = true;
+  sound.play('bump');
   const n = { x: nx, y: ny };
   if (a.def.onContact) a.def.onContact(a, b, n);
   if (b.def.onContact) b.def.onContact(b, a, { x: -nx, y: -ny });
 }
 
+function updateProjectiles(dt) {
+  projectiles = projectiles.filter(p => {
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+
+    let hitWall = false;
+    if (p.x - p.r < 0) { p.x = p.r; p.vx = Math.abs(p.vx); hitWall = true; }
+    if (p.x + p.r > SIZE) { p.x = SIZE - p.r; p.vx = -Math.abs(p.vx); hitWall = true; }
+    if (p.y - p.r < 0) { p.y = p.r; p.vy = Math.abs(p.vy); hitWall = true; }
+    if (p.y + p.r > SIZE) { p.y = SIZE - p.r; p.vy = -Math.abs(p.vy); hitWall = true; }
+    if (hitWall && ++p.wallHits >= SNOT_MAX_WALL_HITS) return false;
+
+    // 부활 대기 중인 상대는 그냥 통과한다
+    const target = balls.find(b => b !== p.owner && b.reviving <= 0);
+    if (!target) return true;
+    const dx = target.x - p.x, dy = target.y - p.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist >= p.r + target.radius) return true;
+    p.onHit(target, { x: dx / (dist || 1), y: dy / (dist || 1) });
+    return false;
+  });
+}
+
 function update(dt) {
   elapsed += dt;
-  balls.forEach((b, i) => {
-    const other = balls[1 - i];
+  balls.forEach(b => {
     b.cd = b.cd.map(c => Math.max(0, c - dt));
     b.flash = Math.max(0, b.flash - dt);
 
@@ -452,14 +781,23 @@ function update(dt) {
       b.reviving -= dt;
       if (b.reviving <= 0) { b.reviving = 0; b.def.onRevive(b); }
     } else {
-      const mult = 1 + b.boost;
+      const mult = (1 + b.boost) * (b.slow > 0 ? SLOW_FACTOR : 1);
       b.boost = Math.max(0, b.boost - KNOCKBACK_DECAY * dt);
+      b.slow = Math.max(0, b.slow - dt);
       b.x += b.vx * mult * dt;
       b.y += b.vy * mult * dt;
-      collideWalls(b);
+      if (collideWalls(b)) {
+        const other = balls.find(o => o !== b);
+        if (b.def.onWall) b.def.onWall(b);
+        if (other.def.onEnemyWall) other.def.onEnemyWall(other, b);
+      }
     }
-    if (b.def.update) b.def.update(b, other, dt);
   });
+  // 두 공이 모두 움직인 뒤에 스킬을 처리해야 먼저 처리되는 쪽이 유리해지지 않는다
+  balls.forEach((b, i) => {
+    if (b.def.update) b.def.update(b, balls[1 - i], dt);
+  });
+  updateProjectiles(dt);
   collideBalls(balls[0], balls[1]);
 
   const down = balls.filter(b => b.hp <= 0 && b.reviving <= 0);
@@ -471,6 +809,7 @@ function update(dt) {
            : a.hp === b.hp ? null : (a.hp > b.hp ? a : b);
     for (const ball of balls) { ball.hp = Math.max(0, ball.hp); ball.flash = 0; }
     setPickersEnabled(true);
+    sound.play(winner ? 'win' : 'draw');
   }
 }
 
@@ -518,6 +857,13 @@ function drawBall(b) {
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+    ctx.fill();
+  }
+
+  if (b.slow > 0) {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(124, 207, 90, 0.35)';
     ctx.fill();
   }
 
@@ -570,12 +916,26 @@ function drawBall(b) {
   ctx.fillText(label, x, y + r - 2);
 }
 
+function drawProjectiles() {
+  for (const p of projectiles) {
+    const img = loadImage(p.img);
+    if (img.complete && img.naturalWidth) {
+      ctx.drawImage(img, p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
+    } else {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.owner.def.color;
+      ctx.fill();
+    }
+  }
+}
+
 function drawTexts() {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   for (const t of texts) {
     ctx.globalAlpha = Math.max(0, Math.min(1, t.life));
-    ctx.font = `bold ${px(t.text.startsWith('-') || t.text.startsWith('+') ? 15 : 16)} sans-serif`;
+    ctx.font = `bold ${px(15)} sans-serif`;
     ctx.lineWidth = 3;
     ctx.strokeStyle = 'rgba(10, 12, 18, 0.8)';
     ctx.strokeText(t.text, t.x, t.y);
@@ -601,7 +961,9 @@ function drawOverlay(title, sub, color) {
 function render() {
   fontScale = Math.min(1.8, Math.max(1, SIZE / (canvas.clientWidth || SIZE)));
   drawArena();
+  balls.forEach(b => b.def.drawUnder && b.def.drawUnder(b));
   balls.forEach(drawBall);
+  drawProjectiles();
   drawTexts();
 
   if (state === 'ready') {
@@ -617,27 +979,12 @@ function render() {
     fill.style.background = b.def.color;
     document.getElementById(`name${i}`).innerHTML =
       `${b.def.name}<small>${Math.ceil(Math.max(0, b.hp))} / ${b.maxHp}</small>`;
-    b.def.skills.forEach((s, k) => {
-      const chip = document.getElementById(`chip${i}-${k}`);
-      if (!s.cooldown) return;
-      chip.querySelector('.cd').style.width = `${(b.cd[k] / s.cooldown) * 100}%`;
-      chip.classList.toggle('ready', b.cd[k] <= 0);
-    });
   });
   document.getElementById('timer').textContent = `${elapsed.toFixed(1)}s`;
 
   const label = { ready: '시작', running: '경기 중…', over: '다시 시작' }[state];
   if (startBtn.textContent !== label) startBtn.textContent = label;
   startBtn.disabled = state === 'running';
-}
-
-function renderHudSkills() {
-  balls.forEach((b, i) => {
-    document.getElementById(`skills${i}`).innerHTML = b.def.skills.map((s, k) => `
-      <div class="chip ${s.cooldown ? '' : 'ready'}" id="chip${i}-${k}" style="color:${b.def.color}">
-        <div class="cd"></div><span>${s.short || s.name}</span>
-      </div>`).join('');
-  });
 }
 
 function renderCards() {
@@ -689,11 +1036,27 @@ function loop(now) {
 }
 
 function startGame() {
+  sound.unlock();
   if (state === 'running') return;
   if (state === 'over') reset();
   state = 'running';
   setPickersEnabled(false);
+  sound.play('start');
 }
+
+const muteBtn = document.getElementById('mute');
+function renderMute() {
+  const muted = sound.isMuted();
+  muteBtn.textContent = muted ? '🔇' : '🔊';
+  muteBtn.setAttribute('aria-label', muted ? '소리 켜기' : '소리 끄기');
+}
+muteBtn.addEventListener('click', () => {
+  sound.unlock();
+  sound.toggleMute();
+  renderMute();
+  muteBtn.blur();
+});
+renderMute();
 
 const startBtn = document.getElementById('start');
 startBtn.addEventListener('click', startGame);
