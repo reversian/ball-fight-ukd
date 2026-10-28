@@ -1,0 +1,143 @@
+{
+  "seed": 20261024,
+  "matchesPerOpponent": 300,
+  "fps": 60,
+  "limitFrames": 10800,
+  "rows": [
+    {
+      "opponent": "고준형",
+      "matches": 300,
+      "wins": 200,
+      "losses": 100,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 66.66666666666667
+    },
+    {
+      "opponent": "허현",
+      "matches": 300,
+      "wins": 191,
+      "losses": 109,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 63.666666666666664
+    },
+    {
+      "opponent": "박건",
+      "matches": 300,
+      "wins": 174,
+      "losses": 126,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 58
+    },
+    {
+      "opponent": "이민규",
+      "matches": 300,
+      "wins": 99,
+      "losses": 201,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 33
+    },
+    {
+      "opponent": "양서지",
+      "matches": 300,
+      "wins": 129,
+      "losses": 171,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 43
+    },
+    {
+      "opponent": "함태준",
+      "matches": 300,
+      "wins": 281,
+      "losses": 19,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 93.66666666666667
+    },
+    {
+      "opponent": "구동우",
+      "matches": 300,
+      "wins": 81,
+      "losses": 219,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 27
+    },
+    {
+      "opponent": "권혁주",
+      "matches": 300,
+      "wins": 157,
+      "losses": 143,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 52.333333333333336
+    },
+    {
+      "opponent": "정준우",
+      "matches": 300,
+      "wins": 227,
+      "losses": 73,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 75.66666666666667
+    },
+    {
+      "opponent": "정성연",
+      "matches": 300,
+      "wins": 88,
+      "losses": 212,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 29.333333333333332
+    },
+    {
+      "opponent": "문지성",
+      "matches": 300,
+      "wins": 205,
+      "losses": 95,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 68.33333333333333
+    },
+    {
+      "opponent": "김재윤",
+      "matches": 300,
+      "wins": 219,
+      "losses": 81,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 73
+    },
+    {
+      "opponent": "이지원",
+      "matches": 300,
+      "wins": 113,
+      "losses": 68,
+      "draws": 0,
+      "timeouts": 119,
+      "winRate": 37.666666666666664
+    },
+    {
+      "opponent": "양시온",
+      "matches": 300,
+      "wins": 130,
+      "losses": 167,
+      "draws": 0,
+      "timeouts": 3,
+      "winRate": 43.333333333333336
+    },
+    {
+      "opponent": "정찬영",
+      "matches": 300,
+      "wins": 222,
+      "losses": 77,
+      "draws": 1,
+      "timeouts": 0,
+      "winRate": 74
+    }
+  ]
+}

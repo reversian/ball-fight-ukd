@@ -1,0 +1,13 @@
+const fs=require('fs'),vm=require('vm');
+let seed=20261024;const seededMath=Object.create(Math);seededMath.random=()=>{seed=(seed+0x6D2B79F5)>>>0;let t=seed;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296;};
+const elements=new Map();const ctx=new Proxy({},{get:()=>()=>{}});const document={getElementById(id){if(!elements.has(id))elements.set(id,{style:{},getContext:()=>ctx,addEventListener(){},setAttribute(){}});return elements.get(id);},addEventListener(){}};
+const sandbox={console,Math:seededMath,document,window:{devicePixelRatio:1},localStorage:{getItem(){}},Image:class{},requestAnimationFrame(){}};vm.createContext(sandbox);
+vm.runInContext(fs.readFileSync('index.html','utf8').match(/<script>([\s\S]*?)<\/script>/)[1],sandbox);
+vm.runInContext(`{
+if([0,47.5,95,142.5,190,500].some((d,i)=>travelRadius(d)!==[65,75,85,95,105,105][i])||travelDamage(0)!==19||travelDamage(190)!==19)throw Error('travel scaling');
+picks=[CHARACTERS.findIndex(c=>c.name==='이상권'),CHARACTERS.findIndex(c=>c.name==='이민규')];reset();const s=balls[0],e=balls[1];s.x=300;s.y=300;e.x=450;e.y=300;
+s.def.update(s,e,1);if(s.trip?.phase!=='prepare')throw Error('study prepare');s.def.update(s,e,.3);if(!s.tripAir)throw Error('takeoff');let hp=s.hp;dealDamage(e,s,10,{source:'snot'});if(s.hp!==hp)throw Error('flight immunity');dealDamage(e,s,2,{source:'bakeryBurn'});if(s.hp!==hp-2)throw Error('dot bypass');
+s.def.update(s,e,3.75);const x=s.x;s.def.update(s,e,.1);if(s.x!==x)throw Error('shadow stop');s.def.update(s,e,.15);if(!s.studyDone||s.trip||e.hp!==e.maxHp-16||e.stun!==2)throw Error('return impact');
+e.stun=0;const n=e.stunKnockback;knockback(e,n,n.boost);if(e.quakeWall.remaining!==1||e.quakeWall.damage!==2)throw Error('return wall');
+s.travelCooldown=4;s.cd[0]=0;s.def.update(s,e,.01);s.def.update(s,e,.2);if(!s.tripAir)throw Error('travel flight');const before=e.hp,expectedDamage=s.trip.damage;const flight=s.trip.flight;if(flight<.05||flight>.5)throw Error('travel flight bounds');if(travelFlightTime(120)!==.1||travelFlightTime(420)!==.5||travelFlightTime(600)!==.5)throw Error('distance based flight');s.def.update(s,e,flight-.001);if(!s.tripAir||e.hp!==before)throw Error('travel premature landing');s.def.update(s,e,.002);if(Math.abs(e.hp-(before-expectedDamage))>1e-8||s.trip||e.stun!==.5)throw Error('travel damage and stun');console.log('Study phases, airborne immunity, DOT, shadow, return and travel verified');
+}`,sandbox);

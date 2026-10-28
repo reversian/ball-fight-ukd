@@ -1,0 +1,108 @@
+{
+  "seed": 20261024,
+  "fps": 60,
+  "limitSeconds": 180,
+  "matchesPerOpponent": 300,
+  "results": [
+    {
+      "opponent": "고준형",
+      "matches": 300,
+      "wins": 123,
+      "losses": 177,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 41,
+      "averageSeconds": 73.89888888888606
+    },
+    {
+      "opponent": "허현",
+      "matches": 300,
+      "wins": 157,
+      "losses": 143,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 52.333333333333336,
+      "averageSeconds": 58.14077777777573
+    },
+    {
+      "opponent": "박건",
+      "matches": 300,
+      "wins": 91,
+      "losses": 209,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 30.333333333333332,
+      "averageSeconds": 52.85955555555382
+    },
+    {
+      "opponent": "이민규",
+      "matches": 300,
+      "wins": 97,
+      "losses": 203,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 32.333333333333336,
+      "averageSeconds": 58.35049999999799
+    },
+    {
+      "opponent": "양서지",
+      "matches": 300,
+      "wins": 84,
+      "losses": 216,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 28,
+      "averageSeconds": 65.3806666666642
+    },
+    {
+      "opponent": "함태준",
+      "matches": 300,
+      "wins": 60,
+      "losses": 240,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 20,
+      "averageSeconds": 64.16649999999765
+    },
+    {
+      "opponent": "구동우",
+      "matches": 300,
+      "wins": 145,
+      "losses": 155,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 48.333333333333336,
+      "averageSeconds": 74.40088888888587
+    },
+    {
+      "opponent": "권혁주",
+      "matches": 300,
+      "wins": 52,
+      "losses": 248,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 17.333333333333332,
+      "averageSeconds": 61.2923888888867
+    },
+    {
+      "opponent": "정성연",
+      "matches": 300,
+      "wins": 138,
+      "losses": 162,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 46,
+      "averageSeconds": 57.411444444442424
+    },
+    {
+      "opponent": "문지성",
+      "matches": 300,
+      "wins": 175,
+      "losses": 125,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 58.333333333333336,
+      "averageSeconds": 63.88216666666432
+    }
+  ]
+}

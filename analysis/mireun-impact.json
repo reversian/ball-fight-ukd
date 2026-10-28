@@ -1,0 +1,170 @@
+{
+  "matchesPerOpponentPerMode": 20,
+  "fps": 60,
+  "limitSeconds": 180,
+  "totals": {
+    "on": {
+      "matches": 360,
+      "wins": 179,
+      "losses": 180,
+      "timeouts": 1,
+      "draws": 0
+    },
+    "off": {
+      "matches": 360,
+      "wins": 133,
+      "losses": 226,
+      "timeouts": 1,
+      "draws": 0
+    },
+    "activated": 242,
+    "rescued": 47,
+    "reversed": 1
+  },
+  "rows": [
+    {
+      "opponent": "고준형",
+      "onWins": 11,
+      "offWins": 6,
+      "rescued": 5,
+      "reversed": 0,
+      "activated": 15
+    },
+    {
+      "opponent": "허현",
+      "onWins": 13,
+      "offWins": 11,
+      "rescued": 2,
+      "reversed": 0,
+      "activated": 13
+    },
+    {
+      "opponent": "박건",
+      "onWins": 5,
+      "offWins": 1,
+      "rescued": 4,
+      "reversed": 0,
+      "activated": 20
+    },
+    {
+      "opponent": "이민규",
+      "onWins": 16,
+      "offWins": 10,
+      "rescued": 6,
+      "reversed": 0,
+      "activated": 10
+    },
+    {
+      "opponent": "양서지",
+      "onWins": 10,
+      "offWins": 6,
+      "rescued": 4,
+      "reversed": 0,
+      "activated": 15
+    },
+    {
+      "opponent": "함태준",
+      "onWins": 9,
+      "offWins": 8,
+      "rescued": 1,
+      "reversed": 0,
+      "activated": 13
+    },
+    {
+      "opponent": "구동우",
+      "onWins": 6,
+      "offWins": 4,
+      "rescued": 2,
+      "reversed": 0,
+      "activated": 18
+    },
+    {
+      "opponent": "권혁주",
+      "onWins": 10,
+      "offWins": 9,
+      "rescued": 1,
+      "reversed": 0,
+      "activated": 11
+    },
+    {
+      "opponent": "정준우",
+      "onWins": 6,
+      "offWins": 4,
+      "rescued": 2,
+      "reversed": 0,
+      "activated": 16
+    },
+    {
+      "opponent": "정성연",
+      "onWins": 9,
+      "offWins": 6,
+      "rescued": 4,
+      "reversed": 1,
+      "activated": 15
+    },
+    {
+      "opponent": "문지성",
+      "onWins": 10,
+      "offWins": 7,
+      "rescued": 3,
+      "reversed": 0,
+      "activated": 14
+    },
+    {
+      "opponent": "김지성",
+      "onWins": 11,
+      "offWins": 9,
+      "rescued": 2,
+      "reversed": 0,
+      "activated": 14
+    },
+    {
+      "opponent": "이지원",
+      "onWins": 5,
+      "offWins": 2,
+      "rescued": 3,
+      "reversed": 0,
+      "activated": 17
+    },
+    {
+      "opponent": "양시온",
+      "onWins": 13,
+      "offWins": 13,
+      "rescued": 0,
+      "reversed": 0,
+      "activated": 7
+    },
+    {
+      "opponent": "정찬영",
+      "onWins": 6,
+      "offWins": 4,
+      "rescued": 2,
+      "reversed": 0,
+      "activated": 16
+    },
+    {
+      "opponent": "이상권",
+      "onWins": 10,
+      "offWins": 6,
+      "rescued": 4,
+      "reversed": 0,
+      "activated": 14
+    },
+    {
+      "opponent": "이권율",
+      "onWins": 9,
+      "offWins": 7,
+      "rescued": 2,
+      "reversed": 0,
+      "activated": 13
+    },
+    {
+      "opponent": "박성웅",
+      "onWins": 20,
+      "offWins": 20,
+      "rescued": 0,
+      "reversed": 0,
+      "activated": 1
+    }
+  ]
+}

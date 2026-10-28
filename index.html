@@ -45,6 +45,15 @@
     font-size: 14px;
   }
   .select select:disabled { opacity: 0.5; }
+  .character-picker { position: relative; min-width: 0; }
+  .character-picker select { display: none; }
+  .picker-toggle { width: 100%; padding: 10px 8px; background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 8px; cursor: pointer; font: inherit; }
+  .picker-toggle:disabled { opacity: .5; cursor: default; }
+  .picker-options { position: absolute; top: calc(100% + 5px); left: 0; width: max(100%, 360px); max-width: calc(100vw - 32px); max-height: 320px; overflow-y: auto; padding: 6px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; z-index: 20; box-shadow: 0 8px 24px #0008; }
+  .picker-options[hidden] { display: none; }
+  .character-picker:last-child .picker-options { left: auto; right: 0; }
+  .picker-options button { padding: 9px 5px; color: var(--text); background: transparent; border: 1px solid var(--line); border-radius: 5px; cursor: pointer; font: inherit; font-size: 13px; }
+  .picker-options button[aria-pressed="true"] { background: #35445d; border-color: #8aafff; }
   .vs { color: var(--muted); font-weight: 700; }
   .hud {
     display: grid;
@@ -102,6 +111,10 @@
     -webkit-tap-highlight-color: transparent;
   }
   .start:active { transform: scale(0.98); }
+  .game-controls { display:flex; gap:10px; max-width:320px; width:100%; margin:12px auto 0; }
+  .game-controls .start { flex:1; min-width:0; margin:0; }
+  .game-controls [hidden] { display:none; }
+  #stop { background:#c86666; color:#fff; }
   .start:disabled { background: var(--panel); color: var(--muted); border: 1px solid var(--line); cursor: default; }
   .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; font-size: 13px; line-height: 1.45; }
@@ -130,7 +143,7 @@
     h1 { display: none; }
     .wrap { max-width: 1000px; grid-template-columns: auto minmax(0, 1fr); column-gap: 16px; align-items: start; }
     canvas { grid-column: 1; grid-row: 1 / span 5; width: calc(100svh - 24px); margin: 0; position: sticky; top: 10px; }
-    .select, .hud, .start, .cards, .hint { grid-column: 2; }
+    .select, .hud, .start, .game-controls, .cards, .hint { grid-column: 2; }
     .start { margin: 4px 0 0; max-width: none; }
     .cards { grid-template-columns: 1fr; }
     .hint { display: none; }
@@ -142,9 +155,9 @@
 
   <div class="wrap">
     <div class="select">
-      <select id="pick0"></select>
+      <div class="character-picker"><select id="pick0"></select><button class="picker-toggle" id="pickerToggle0" type="button" aria-expanded="false" aria-controls="pickerOptions0"></button><div class="picker-options" id="pickerOptions0" hidden></div></div>
       <div class="vs">VS</div>
-      <select id="pick1"></select>
+      <div class="character-picker"><select id="pick1"></select><button class="picker-toggle" id="pickerToggle1" type="button" aria-expanded="false" aria-controls="pickerOptions1"></button><div class="picker-options" id="pickerOptions1" hidden></div></div>
     </div>
 
     <div class="hud">
@@ -163,7 +176,7 @@
     </div>
 
     <canvas id="arena"></canvas>
-    <button class="start" id="start" type="button">시작</button>
+    <div class="game-controls"><button class="start" id="start" type="button">시작</button><button class="start" id="stop" type="button" hidden>종료</button></div>
 
     <div class="cards" id="cards"></div>
     <div class="hint">경기장 탭, 시작 버튼, 또는 <kbd>Space</kbd>로 시작</div>
@@ -240,9 +253,35 @@ const sound = (() => {
   }
 
   const SFX = {
+    paintSpill: () => {
+      noise(0.07, { freq: 650, vol: 0.13 });
+      tone(290, 0.18, { type: 'triangle', to: 140, vol: 0.11 });
+      tone(470, 0.12, { type: 'triangle', to: 260, vol: 0.07, delay: 0.07 });
+      noise(0.3, { freq: 1150, vol: 0.09, delay: 0.06 });
+      noise(0.18, { freq: 420, vol: 0.07, delay: 0.13 });
+    },
+    quakeJump: () => {
+      noise(0.3, { freq: 700, vol: 0.10 });
+      tone(110, 0.42, { type: 'triangle', to: 420, vol: 0.12 });
+      tone(180, 0.24, { to: 650, vol: 0.06, delay: 0.05 });
+    },
+    quakeLanding: () => {
+      tone(95, 0.95, { to: 28, vol: 0.25 });
+      tone(55, 1.25, { to: 24, vol: 0.18 });
+      noise(0.24, { freq: 180, vol: 0.25 });
+      noise(0.75, { freq: 85, vol: 0.15, delay: 0.08 });
+      [0.12, 0.26, 0.43].forEach((delay, i) => tone(65 - i * 8, 0.5, { to: 25, vol: 0.10 / (i + 1), delay }));
+    },
+    pianoNote: () => tone(440 + Math.random() * 220, 0.22, { type: 'triangle', vol: 0.1 }),
+    bassNote: () => { tone(82, 0.4, { type: 'sawtooth', to: 55, vol: 0.12 }); noise(0.12, { freq: 180, vol: 0.1 }); },
     wall: () => tone(260, 0.05, { type: 'triangle', vol: 0.05 }),
     bump: () => { noise(0.08, { freq: 400, vol: 0.25 }); tone(140, 0.12, { to: 70, vol: 0.2 }); },
     hit: () => noise(0.06, { freq: 1500, vol: 0.15 }),
+    chew: () => {
+      noise(0.075, { freq: 650 + Math.random() * 250, vol: 0.10 });
+      tone(180 + Math.random() * 45, 0.09, { to: 90, type: 'sine', vol: 0.10 });
+      noise(0.045, { freq: 1200, vol: 0.055, delay: 0.07 });
+    },
     start: () => { tone(523, 0.1, { type: 'square', vol: 0.06 }); tone(784, 0.2, { type: 'square', vol: 0.06, delay: 0.1 }); },
     win: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, i === 3 ? 0.6 : 0.15, { type: 'square', vol: 0.07, delay: i * 0.12 })),
     draw: () => { tone(392, 0.3, { type: 'triangle', vol: 0.12 }); tone(370, 0.5, { type: 'triangle', vol: 0.12, delay: 0.3 }); },
@@ -316,9 +355,9 @@ const COIN_RECOVER_DELAY = 3; // 표식이 붙고 이 시간이 지나야 회수
 
 const DOMAIN_IMAGE = 'images/balls/박건배경영역.jpg';
 const DOMAIN_GROW_SPEED = 160; // 배경 반지름이 초당 커지는 양 (px)
-const DOMAIN_STEP = 80;        // 배경이 이만큼 커질 때마다 피해 한 단계 증가 (0.5초)
-const DOMAIN_DAMAGE_STEP = 8;  // 단계당 피해 (8, 16, 24, 32, 40)
-const DOMAIN_MAX_STEPS = 5;
+const DOMAIN_STEP = 320 / 6;   // 기존 최대 피해 구간(본체 반지름 + 320px)을 7단계로 분할
+const DOMAIN_DAMAGE_STEP = 6;  // 단계당 피해 (6, 12, 18, 24, 30, 36, 42)
+const DOMAIN_MAX_STEPS = 7;
 
 const COLOSSEUM_IMAGE = 'images/balls/함태준콜로세움.jpg';
 const COLOSSEUM_DELAY = 3;       // 함태준: 게임 시작 3초 후부터 콜로세움 적용
@@ -331,7 +370,7 @@ const ALPHA_KNOCKBACK_BOOST = 2;  // 양서지 넉백: 원래 속도의 1 + 2 = 
 const SNOT_IMAGE = 'images/balls/이민규투사체.png';
 const SNOT_SPEED = SPEED['보통'];
 const SNOT_RADIUS = 14;
-const SNOT_DAMAGE = 18;
+const SNOT_DAMAGE = 14;
 const SNOT_MAX_WALL_HITS = 3; // 벽에 2번 튕기고 3번째로 부딪히면 사라진다
 const SLOW_DURATION = 1;      // 코딱지에 맞으면 1초 동안
 const SLOW_FACTOR = 0.5;      // 원래 속도의 절반으로 느려진다
@@ -387,11 +426,13 @@ const CHARACTERS = [
       if (self.revived) return false;
       self.revived = true;
       self.reviving = 0.5;
+      self.buddhaEffect = { age: 0, fade: null };
       sound.play('down');
       self.hp = 0;
       return true;
     },
     onRevive(self) {
+      if (self.buddhaEffect) self.buddhaEffect.fade = 0.8;
       self.hp = self.maxHp = 108;
       self.atkBonus = 1;
       self.img = loadImage('images/balls/고준형부활.png');
@@ -400,13 +441,13 @@ const CHARACTERS = [
   },
   {
     name: '허현', hp: 210, speed: '보통', size: '보통', color: '#ff4d5e',
-    image: 'images/balls/허현.png',
+    image: 'images/balls/허현-profile.jpg',
     ability: '광대뼈 돌출',
-    cheekAngle: 35, // 좌우 수평선에서 ±35° 범위가 광대뼈
+    cheekAngle: 44, // 좌우 각각 88°, 합계 176° 범위가 광대뼈
     skills: [
       {
         name: '광대뼈 돌출', cooldown: 0,
-        desc: '자신의 왼쪽·오른쪽(광대뼈)에 접촉한 적에게 35의 피해를 주고 강하게 넉백시킨다. 광대뼈 부분으로 공격받으면 받는 피해가 절반이 된다. 단, 코인 표식 피해는 절반이 되지 않는다.',
+        desc: '자신의 왼쪽·오른쪽(광대뼈)에 접촉한 적에게 27의 피해를 주고 강하게 넉백시킨다. 광대뼈 부분으로 공격받으면 받는 피해가 절반이 된다. 단, 코인 표식 피해는 절반이 되지 않는다.',
       },
     ],
     trait: {
@@ -415,7 +456,7 @@ const CHARACTERS = [
     },
     onContact(self, other, n) {
       if (!isCheek(self, n)) return;
-      dealDamage(self, other, 35, { contact: n, sound: 'cheek', color: '#ff4d5e' });
+      dealDamage(self, other, 27, { contact: n, sound: 'cheek', color: '#ff4d5e' });
       knockback(other, n);
     },
     modifyIncoming(self, dmg, info) {
@@ -439,15 +480,16 @@ const CHARACTERS = [
     skills: [
       {
         name: '권한 행사', cooldown: 4.5,
-        desc: '쿨타임이 끝나면 자신을 중심으로 넓어지는 배경을 소환한다. 배경은 박건을 따라다니며 상대와 닿을 때까지 커지고, 닿으면 사라진다. 사라진 때부터 쿨타임이 다시 돈다.',
+        desc: '첫 발동과 재사용 대기시간은 매번 4.5~5.5초 사이에서 무작위로 정한다. 쿨타임이 끝나면 자신을 중심으로 넓어지는 배경을 소환한다. 배경은 박건을 따라다니며 상대와 닿을 때까지 커지고, 닿으면 사라진다. 사라진 때부터 쿨타임이 다시 돈다.',
       },
     ],
     trait: {
       name: '의식',
-      desc: `배경이 상대에 닿으면 배경 크기에 따라 ${DOMAIN_DAMAGE_STEP}~${DOMAIN_DAMAGE_STEP * DOMAIN_MAX_STEPS}의 피해를 준다. 배경은 0.5초마다 한 단계씩 커지며 피해가 8, 16, 24, 32, 40으로 늘어난다.`,
+      desc: `배경이 상대에 닿으면 배경 크기에 따라 6, 12, 18, 24, 30, 36, 42의 7단계 피해를 준다. 반지름이 약 53.33px(약 0.33초) 늘어날 때마다 한 단계 증가하며, 기존과 동일하게 본체 반지름보다 320px 커지면 최대 피해에 도달한다.`,
     },
     init(self) {
       self.domain = null;
+      self.cd[0] = self.def.skills[0].cooldown + Math.random();
       loadImage(DOMAIN_IMAGE);
     },
     update(self, other, dt) {
@@ -457,13 +499,13 @@ const CHARACTERS = [
       }
       self.domain.r += DOMAIN_GROW_SPEED * dt;
       // 부활 대기 중인 상대에게는 닿지 않고 계속 커진다
-      if (other.reviving > 0) return;
+      if (other.reviving > 0 || (other.def.name === '이상권' && other.tripAir)) return;
       const dist = Math.hypot(other.x - self.x, other.y - self.y);
       if (dist - other.radius > self.domain.r) return;
       const step = Math.min(DOMAIN_MAX_STEPS, 1 + Math.floor((self.domain.r - self.radius) / DOMAIN_STEP));
       dealDamage(self, other, DOMAIN_DAMAGE_STEP * step, { source: 'domain', sound: 'domainHit', step, color: self.def.color });
       self.domain = null;
-      self.cd[0] = self.def.skills[0].cooldown;
+      self.cd[0] = self.def.skills[0].cooldown + Math.random();
     },
     drawUnder(self) {
       if (!self.domain) return;
@@ -478,16 +520,19 @@ const CHARACTERS = [
       if (img.complete && img.naturalWidth) ctx.drawImage(img, x - r, y - r, r * 2, r * 2);
       else { ctx.fillStyle = self.def.color; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
       ctx.restore();
+      ctx.save();
+      if(self.presidentSkillBuff>0){ctx.shadowColor='#429bff';ctx.shadowBlur=28;ctx.fillStyle='rgba(66,155,255,.12)';ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();}
       ctx.beginPath();
       ctx.arc(x, y, r, 0, Math.PI * 2);
-      ctx.strokeStyle = self.def.color;
+      ctx.strokeStyle = self.presidentSkillBuff>0?'#57abff':self.def.color;
       ctx.lineWidth = 3;
       ctx.stroke();
+      ctx.restore();
     },
   },
   {
     name: '이민규', hp: 180, speed: '보통', size: '작음', color: '#7ccf5a',
-    image: 'images/balls/이민규.png',
+    image: 'images/balls/이민규-profile.jpg',
     ability: '코딱지',
     skills: [
       {
@@ -515,19 +560,19 @@ const CHARACTERS = [
         r: SNOT_RADIUS, wallHits: 0, img: SNOT_IMAGE,
         onHit(target, n) {
           dealDamage(self, target, SNOT_DAMAGE, { contact: n, source: 'snot', projectile: true, sound: 'snotHit', color: self.def.color });
-          target.slow = SLOW_DURATION;
+          if (!(isUntouchable(target))) target.slow = SLOW_DURATION;
         },
       });
     },
   },
   {
     name: '양서지', hp: 210, speed: '보통', size: '보통', color: '#4ea8ff',
-    image: 'images/balls/양서지.png',
+    image: 'images/balls/양서지-profile.jpg',
     ability: '우월',
     skills: [
       {
         name: '알파', cooldown: 0,
-        desc: '적과 부딪힐 때마다 피해를 주고, 상대를 원래 속도의 3배로 튕겨낸다. 피해는 0에서 시작해 부딪힐 때마다 2씩 늘어난다 (0 → 2 → 4 → 6 …, 상한 없음).',
+        desc: '적과 부딪힐 때마다 피해를 주고, 상대를 원래 속도의 3배로 튕겨낸다. 피해는 0에서 시작하며 접촉 후 33% 확률로 1, 67% 확률로 2 증가한다. 상한은 없다.',
       },
     ],
     trait: {
@@ -536,10 +581,14 @@ const CHARACTERS = [
     },
     init(self) {
       self.alphaCount = 0;
+      self.alphaDamage = 0;
     },
     onContact(self, other, n) {
-      dealDamage(self, other, ALPHA_DAMAGE_STEP * self.alphaCount, { contact: n, sound: 'alpha', color: self.def.color });
+      if (isUntouchable(other)) return;
+      dealDamage(self, other, self.alphaDamage, { contact: n, sound: 'alpha', color: self.def.color });
+      if (isUntouchable(other)) return;
       self.alphaCount++;
+      self.alphaDamage += Math.random()<.33?1:ALPHA_DAMAGE_STEP;
       knockback(other, n, ALPHA_KNOCKBACK_BOOST);
     },
     modifyIncoming(self, dmg, info) {
@@ -602,6 +651,1358 @@ const CHARACTERS = [
   },
 ];
 
+let hackScene=null;
+CHARACTERS.push({
+  name:'이서안',hp:190,speed:'보통',size:'작음',color:'#39e85b',image:'',ability:'해킹으로 사용불가',
+  skills:[],trait:{name:'해킹',desc:'게임 시작 1초 후 큰 해킹 마크가 나타난다. 마크 등장 1초 후 이서안을 추적하는 레이저를 발사하며, 적중 시 폭발하고 체력이 0이 된다.'},
+  init(self){self.hackWait=1;self.hackedDown=false;},
+  update(self,other,dt){
+    if(self.hackedDown)return;
+    if(!self.hackEffect){
+      self.hackWait=Math.max(0,self.hackWait-dt);
+      if(self.hackWait<=0){self.hackEffect={target:self,phase:'warning',age:0,remaining:1};hackScene=self.hackEffect;}
+      return;
+    }
+    const effect=self.hackEffect;effect.age+=dt;
+    if(effect.phase==='warning'){
+      if(effect.age>=1){effect.phase='laser';effect.age=0;sound.play('domainHit',{step:5});}
+      return;
+    }
+    if(effect.phase==='laser'&&effect.age>=.25){self.hackedDown=true;effect.phase='impact';effect.remaining=1;self.hp=0;checkLethal(self);}
+  }
+});
+function drawHackScene(){
+  if(!hackScene)return;
+  const img=loadImage('images/balls/이서안해킹.png'),cx=SIZE/2,cy=SIZE/2;
+  ctx.save();ctx.globalAlpha=Math.min(1,hackScene.remaining*4);
+  ctx.strokeStyle='#35ff63';ctx.shadowColor='#35ff63';ctx.shadowBlur=22;ctx.lineWidth=12;
+  if(hackScene.phase!=='warning'){
+    const target=hackScene.target,t=hackScene.phase==='laser'?Math.min(1,hackScene.age/.25):1;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+(target.x-cx)*t,cy+(target.y-cy)*t);ctx.stroke();
+    ctx.strokeStyle='#eaffef';ctx.lineWidth=3;ctx.stroke();
+  }
+  const size=SIZE*.9;
+  if(img.complete&&img.naturalWidth)ctx.drawImage(img,cx-size/2,cy-size/2,size,size);ctx.restore();
+}
+let fpsMagazines=[],fpsBrokenGear=[];
+const FPS_GEAR={computer:'모니터',mouse:'마우스',keyboard:'키보드'};
+function fpsStats(b){
+  const u=b.fpsUpgrades||{};
+  return {range:u.computer>0?360:310,half:(u.computer>0?23:20)*Math.PI/360,interval:u.keyboard>0?.2:.3,damage:u.computer>0?3:2,bulletSpeed:u.mouse>0?1500:1200,mouse:u.mouse>0,reloadRate:u.keyboard>0?2:1,scanSpeed:u.computer>0?Math.PI:Math.PI/2};
+}
+function grantFpsUpgrade(b,kind){
+  const duration={computer:[7,12.5],mouse:[6,8],keyboard:[7,10]}[kind];
+  b.fpsUpgrades[kind]=duration[0]+Math.random()*(duration[1]-duration[0]);
+  b.fpsUpgradeShown=kind;b.fpsUpgradeFlash=.95;
+}
+function updateFpsUpgrades(b,dt){
+  for(const kind of ['computer','mouse','keyboard']){
+    const before=b.fpsUpgrades[kind];b.fpsUpgrades[kind]=Math.max(0,before-dt);
+    if(before>0&&b.fpsUpgrades[kind]===0){const angle=Math.random()*Math.PI*2;fpsBrokenGear.push({kind,startX:b.x,startY:b.y-b.radius,x:Math.max(25,Math.min(SIZE-25,b.x+Math.cos(angle)*100)),y:Math.max(25,Math.min(SIZE-25,b.y+Math.sin(angle)*100)),age:0});}
+  }
+  b.fpsUpgradeFlash=Math.max(0,b.fpsUpgradeFlash-dt);
+  b.fpsUpgradeWait=Math.max(0,b.fpsUpgradeWait-dt);
+  if(b.fpsUpgradeRoll>0){
+    b.fpsUpgradeRoll=Math.max(0,b.fpsUpgradeRoll-dt);
+    if(b.fpsUpgradeRoll<=0)grantFpsUpgrade(b,['computer','mouse','keyboard'][Math.floor(Math.random()*3)]);
+  }else if(b.fpsUpgradeWait<=0){b.fpsUpgradeRoll=2;b.fpsUpgradeWait=7.5+Math.random();}
+}
+CHARACTERS.push({
+  name:'구동우',hp:200,speed:'보통',size:'보통',color:'#53c9b1',image:'images/balls/구동우-v2.jpg',ability:'FPS게임',
+  skills:[{name:'FPS',cooldown:0,desc:'사거리 310px, 전체 각도 20도. 레이더는 초당 90도로 360도 회전하며 포착 후 초당 180도로 적을 추적한다. 총알 속도는 1200px/초, 반지름은 6px이다. 사거리 이탈·지정 불가 또는 포착 이후 최단 거리보다 70px 이상 멀어지면 추적을 중단한다. 범위 안에서 0.3초마다 기본 피해 2(모니터 활성 시 3)의 총알을 발사한다. 25발 소진 시 레이더를 숨기고 탄창을 던지며 3초 재장전이 끝나면 레이더가 다시 나타난다. 탄창은 1초 후 착지하며 피해 3을 준다.'}],
+  trait:{name:'업그레이드',desc:'시작과 동시에 2초간 장비 추첨, 이후 7.5~8.5초마다 2초 추첨. 모니터: 총알 피해 3·사거리 360px·탐지각 23도·탐색 회전 초당 180도, 7~12.5초. 마우스: 사거리 밖에서도 적 방향 상시 추적·보라색 레이더·탄속 1200→1500px/초, 6~8초. 키보드: 재장전 3→1.5초·발사 간격 0.1초 감소, 7~10초. 다른 효과는 중첩, 같은 효과는 지속시간 갱신. 발사 간격 기본 0.3초, 키보드 활성 시 0.2초. 만료 시 파손 장비를 던지고 착지 1.5초 후 사라진다.'},
+  init(self){self.fpsAngle=Math.random()*Math.PI*2;self.fpsTracking=false;self.fpsTrackDistance=0;self.fpsAmmo=25;self.fpsShot=0;self.fpsReload=0;self.fpsFlash=0;self.gunAngle=0;self.fpsUpgrades={computer:0,mouse:0,keyboard:0};self.fpsUpgradeWait=7.5+Math.random();self.fpsUpgradeRoll=2;self.fpsUpgradeFlash=0;},
+  update(self,other,dt){
+    updateFpsUpgrades(self,dt);
+    const stats=fpsStats(self);
+    const valid=other.hp>0&&other.reviving<=0&&(!isUntouchable(other)||(other.def.name==='이지원'&&other.dodgeTime>0));
+    const angle=Math.atan2(other.y-self.y,other.x-self.x),distance=Math.hypot(other.x-self.x,other.y-self.y);
+    let released=false;
+    if(self.fpsTracking&&(!valid||distance>stats.range+other.radius||(!stats.mouse&&distance>self.fpsTrackDistance+70))){
+      self.fpsTracking=false;released=true;
+    }
+    if(stats.mouse&&valid){
+      self.fpsAngle=angle;self.fpsTracking=true;self.fpsTrackDistance=distance;
+    }else if(self.fpsTracking){
+      self.fpsTrackDistance=Math.min(self.fpsTrackDistance,distance);
+      const turn=Math.atan2(Math.sin(angle-self.fpsAngle),Math.cos(angle-self.fpsAngle)),step=Math.PI*dt;
+      self.fpsAngle+=Math.max(-step,Math.min(step,turn));
+    }else{
+      self.fpsAngle=(self.fpsAngle+stats.scanSpeed*dt)%(Math.PI*2);
+    }
+    const diff=Math.abs(Math.atan2(Math.sin(angle-self.fpsAngle),Math.cos(angle-self.fpsAngle)));
+    const detected=valid&&distance<=stats.range+other.radius&&diff<=stats.half+Math.asin(Math.min(1,other.radius/(distance||1)));
+    if(detected&&!self.fpsTracking&&!released){self.fpsTracking=true;self.fpsTrackDistance=distance;}
+    self.fpsFlash=Math.max(0,self.fpsFlash-dt);
+    if(self.fpsReload>0){self.fpsReload=Math.max(0,self.fpsReload-dt*stats.reloadRate);if(self.fpsReload<=0)self.fpsAmmo=25;return;}
+    self.fpsShot=Math.max(0,Math.min(self.fpsShot,stats.interval)-dt);
+    if(!detected||self.fpsShot>0)return;
+    self.gunAngle=angle;self.fpsFlash=.15;self.fpsShot=stats.interval;self.fpsAmmo--;
+    const n={x:Math.cos(angle),y:Math.sin(angle)};
+    projectiles.push({owner:self,fpsBullet:true,img:'images/balls/구동우총알.png',x:self.x+n.x*(self.radius+5),y:self.y+n.y*(self.radius+5),vx:n.x*stats.bulletSpeed,vy:n.y*stats.bulletSpeed,r:6,wallHits:0,maxWallHits:1,onHit(target){dealDamage(self,target,stats.damage,{source:'fpsBullet',projectile:true,sound:'hit'});}});
+    if(self.fpsAmmo===0){self.fpsReload=3;const distance=150;fpsMagazines.push({owner:self,startX:self.x,startY:self.y,x:Math.max(22,Math.min(SIZE-22,self.x+n.x*distance)),y:Math.max(22,Math.min(SIZE-22,self.y+n.y*distance)),age:0,r:22});}
+  },
+  drawUnder(self){
+    if(self.fpsAmmo<=0||self.fpsReload>0)return;
+    const stats=fpsStats(self);
+    ctx.save();ctx.translate(self.x,self.y);ctx.rotate(self.fpsAngle);ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,stats.range,-stats.half,stats.half);ctx.closePath();ctx.fillStyle=stats.mouse?'rgba(189,114,255,.12)':'rgba(83,201,177,.09)';ctx.fill();ctx.strokeStyle=stats.mouse?'#bd72ff':'#53c9b1';ctx.lineWidth=1.5;ctx.stroke();ctx.restore();
+  }
+});
+function updateFpsMagazines(dt){
+  fpsBrokenGear.forEach(g=>g.age+=dt);fpsBrokenGear=fpsBrokenGear.filter(g=>g.age<2.1);
+  fpsMagazines=fpsMagazines.filter(m=>{m.age+=dt;if(m.age<1)return true;for(const b of balls)if(b.side!==m.owner.side&&b.hp>0&&b.reviving<=0&&!isUntouchable(b)&&Math.hypot(b.x-m.x,b.y-m.y)<=b.radius+m.r)dealDamage(m.owner,b,3,{source:'fpsMagazine',projectile:true,sound:'hit'});return false;});
+}
+function drawFpsMagazines(){
+  for(const g of fpsBrokenGear){const t=Math.min(1,g.age/.6),img=loadImage('images/balls/구동우'+FPS_GEAR[g.kind]+'파손.png'),x=g.startX+(g.x-g.startX)*t,y=g.startY+(g.y-g.startY)*t-Math.sin(t*Math.PI)*75;
+    if(img.complete&&img.naturalWidth){ctx.save();ctx.translate(x,y);ctx.rotate(t*Math.PI*.4);ctx.drawImage(img,-27,-27,54,54);ctx.restore();}}
+  const img=loadImage('images/balls/구동우탄창.webp');for(const m of fpsMagazines){const t=Math.min(1,m.age),x=m.startX+(m.x-m.startX)*t,y=m.startY+(m.y-m.startY)*t-Math.sin(t*Math.PI)*100;ctx.save();ctx.strokeStyle='rgba(83,201,177,.6)';ctx.beginPath();ctx.arc(m.x,m.y,m.r,0,Math.PI*2);ctx.stroke();if(img.complete&&img.naturalWidth)ctx.drawImage(img,x-22,y-22,44,44);ctx.restore();}
+}
+function drawFpsGun(b,x,y,r){
+  if(b.def.name!=='구동우')return;
+  const img=loadImage('images/balls/구동우총.webp');
+  ctx.save();ctx.translate(x+r*.5,y+r*.55);ctx.scale(-1,1);
+  if(img.complete&&img.naturalWidth)ctx.drawImage(img,-r*.85,-r*.85,r*1.7,r*1.7);
+  ctx.restore();ctx.save();
+  const upgradeLabels={computer:'🖥 모니터',mouse:'🖱 마우스',keyboard:'⌨ 키보드'};
+  ctx.font='bold 13px sans-serif';ctx.textAlign='center';ctx.fillStyle='#b8ffeb';
+  if(b.fpsUpgradeRoll>0){
+    const choice=b.fpsUpgradeRoll>0?['computer','mouse','keyboard'][Math.floor((2-b.fpsUpgradeRoll)*18)%3]:b.fpsUpgradeShown;
+    const preview=loadImage('images/balls/구동우'+FPS_GEAR[choice]+'.png');
+    if(preview.complete&&preview.naturalWidth){const size=78;ctx.drawImage(preview,x-size/2,y-r-size-14,size,size);}
+  }
+  const active=Object.keys(upgradeLabels).filter(k=>b.fpsUpgrades[k]>0);
+  const auraColors={computer:'#38cfff',mouse:'#bd72ff',keyboard:'#ffd35b'};
+  active.forEach((kind,i)=>{
+    ctx.save();const color=auraColors[kind],radius=r+5+i*5,pulse=.65+.2*Math.sin(elapsed*5+i*2);
+    ctx.strokeStyle=color;ctx.shadowColor=color;ctx.shadowBlur=16;ctx.lineWidth=3;ctx.globalAlpha=pulse;
+    ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);ctx.stroke();
+    ctx.globalAlpha=.85;ctx.lineWidth=4;const angle=elapsed*(i%2?-2:2)+i*2;
+    ctx.beginPath();ctx.arc(x,y,radius,angle,angle+Math.PI*.55);ctx.stroke();ctx.restore();
+  });
+  active.forEach((kind,i)=>{const gear=loadImage('images/balls/구동우'+FPS_GEAR[kind]+'.png'),size=28,gx=x-r-12,gy=y+r-12-i*25;if(gear.complete&&gear.naturalWidth)ctx.drawImage(gear,gx-size/2,gy-size/2,size,size);});
+  const bx=x-r*.8,by=y+r+14,bw=r*1.6,bh=8;
+  ctx.fillStyle='#182328';ctx.fillRect(bx-2,by-2,bw+4,bh+4);
+  const amount=b.fpsReload>0?Math.max(0,1-b.fpsReload/3):b.fpsAmmo/25;
+  ctx.fillStyle=b.fpsReload>0?'#f2bc55':'#7af4bd';
+  ctx.fillRect(bx,by,bw*amount,bh);
+  ctx.strokeStyle='#34484c';ctx.lineWidth=1;
+  for(let i=1;i<25;i++){const line=bx+bw*i/25;ctx.beginPath();ctx.moveTo(line,by);ctx.lineTo(line,by+bh);ctx.stroke();}
+  if(b.fpsReload>0){
+    const progress=Math.max(0,Math.min(1,1-b.fpsReload/3)),angle=-Math.PI/2+(3-b.fpsReload)*Math.PI*2;
+    ctx.lineWidth=4;ctx.strokeStyle='rgba(242,188,85,.2)';
+    ctx.beginPath();ctx.arc(x,y,r+2,0,Math.PI*2);ctx.stroke();
+    ctx.lineCap='round';ctx.strokeStyle='#f2bc55';ctx.shadowColor='#ffd678';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(x,y,r+2,angle,angle+Math.PI*.65);ctx.stroke();
+    ctx.shadowBlur=0;ctx.lineWidth=2;ctx.strokeStyle='rgba(255,238,185,.8)';
+    ctx.beginPath();ctx.arc(x,y,r-3,-Math.PI/2,-Math.PI/2+progress*Math.PI*2);ctx.stroke();
+  }
+  ctx.restore();
+}
+
+const KWON_UM = 'images/balls/권혁주 엄.png';
+const KWON_NO = 'images/balls/권혁주 아뇨.png';
+const KWON_GOLD_CHOICES = ['images/balls/권혁주엄금빛.png', 'images/balls/권혁주아뇨금빛.png', 'images/balls/권혁주예금빛.png'];
+const KWON_GOLD_FINISHER = 'images/balls/권혁주줴줴이야금빛.png';
+const KWON_CONE_RANGE = 260;
+const KWON_CONE_HALF = 50 * Math.PI / 180;
+
+CHARACTERS.push({
+  name: '권혁주', hp: 200, speed: '보통', size: '보통', color: '#ff9345',
+  image: 'images/balls/권혁주.jpg', ability: '한남말투',
+  skills: [{ name: '한남말투', cooldown: 2,
+    desc: '2초 후 1.5초 동안 엄 / 아뇨아뇨아뇨 / 예?를 돌려 하나를 무작위로 발동한다. 엄: 배경 1.5초, 전체 적 8 피해와 0.7초 행동·쿨타임 정지 후 넉백. 아뇨: 상대 방향으로 3개를 흩뿌려 각각 8 피해, 벽이나 적에 닿으면 소멸. 예?: 권혁주를 따라 움직이는 사거리 260px, 100도 부채꼴 예고 후 0.3초 뒤 범위를 강조하며 범위 안의 적에게 20 피해와 넉백. 발동 후 쿨타임이 다시 시작된다.' }],
+  trait: { name: '줴줴이야!', desc: '상대 HP가 30 이하이면 한 번만 10초 충전한다. 충전 중 이동·공격이 불가능하며 피해는 받는다. 충전 시작 시 테두리가 황금색으로 변하며, 완료하면 적에게 황금 레이저를 쏘아 남은 HP를 0으로 만든다.' },
+  init(self) {
+    self.roulette = 0; self.umBackground = 0; self.cone = null; self.coneFlash = null;
+    self.finisher = null; self.finisherUsed = false; self.laser = null;
+    loadImage(KWON_UM); loadImage(KWON_NO);
+  },
+  update(self, other, dt) {
+    if (self.hp <= 0 || self.reviving > 0) return;
+    cancelRecoveredFinisher(self, other);
+    if (self.finisher) {
+      self.finisher.remaining = Math.max(0, self.finisher.remaining - dt);
+      if (self.finisher.remaining === 0) {
+        self.finisher = null;
+        if (other.reviving <= 0 && other.hp > 0 && !other.mireun) {
+          self.laser = { x: self.x, y: self.y, targetX: other.x, targetY: other.y, remaining: 0.8 };
+          if(other.soccerDash)dealDamage(self,other,other.hp,{source:'kwonFinisher',sound:false});
+          else{other.hp = 0;checkLethal(other);}
+          other.eliminatedByLaser = other.hp<=0&&other.reviving <= 0;
+          texts.push({ x: other.x, y: other.y, text: '줴줴이야!', color: self.def.color, life: 1.8 });
+          sound.play('domainHit', { step: 5 });
+        }
+      }
+      return;
+    }
+    if (self.cone) {
+      self.cone.x = self.x; self.cone.y = self.y;
+      self.cone.remaining -= dt;
+      if (self.cone.remaining <= 0) {
+        const c = self.cone;
+        self.coneFlash = { ...c, remaining: 0.35 };
+        self.cone = null;
+        if (coneHits(c, other)) {
+          dealDamage(self, other, 20, { source: 'kwonCone', sound: 'cheek', color: self.def.color });
+          knockback(other, directionTo(c, other));
+        }
+      }
+    }
+    if (self.roulette > 0) {
+      self.roulette = Math.max(0, self.roulette - dt);
+      if (self.roulette === 0) {
+        castKwon(self, other, Math.floor(Math.random() * 3));
+        self.cd[0] = 2;
+      }
+    } else if (self.cd[0] <= 0) self.roulette = 1.5;
+  },
+  drawUnder(self) {
+    if (self.umBackground > 0) {
+      const img = loadImage(KWON_UM);
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, self.umBackground / 0.65);
+      if (img.complete && img.naturalWidth) ctx.drawImage(img, 0, 0, SIZE, SIZE);
+      ctx.restore();
+    }
+    if (self.cone || self.coneFlash) {
+      const c = self.cone || self.coneFlash;
+      const firing = !self.cone;
+      const cx = self.x, cy = self.y;
+      ctx.save();
+      if (firing) ctx.globalAlpha = Math.min(1, c.remaining / 0.2);
+      ctx.fillStyle = firing ? 'rgba(255, 223, 117, 0.65)' : 'rgba(255, 206, 103, 0.22)';
+      ctx.strokeStyle = firing ? '#fff9dc' : '#ffce67'; ctx.lineWidth = firing ? 7 : 3;
+      if (firing) { ctx.shadowColor = '#ffce67'; ctx.shadowBlur = 24; }
+      ctx.beginPath(); ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, KWON_CONE_RANGE, c.angle - KWON_CONE_HALF, c.angle + KWON_CONE_HALF);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      if (firing) {
+        ctx.clip();
+        ctx.shadowBlur = 0;
+        const distance = KWON_CONE_RANGE * 0.57;
+        drawKwonGold(KWON_GOLD_CHOICES[2], cx + Math.cos(c.angle) * distance, cy + Math.sin(c.angle) * distance, 120, 70);
+      }
+      ctx.restore();
+    }
+  },
+});
+
+function directionTo(a, b) {
+  const dx = b.x - a.x, dy = b.y - a.y, length = Math.hypot(dx, dy) || 1;
+  return { x: dx / length, y: dy / length };
+}
+
+function coneHits(c, target) {
+  if (target.reviving > 0 || target.hp <= 0 || isUntouchable(target)) return false;
+  const dx = target.x - c.x, dy = target.y - c.y, distance = Math.hypot(dx, dy);
+  if (distance <= target.radius) return true;
+  const angle = Math.abs(Math.atan2(Math.sin(Math.atan2(dy, dx) - c.angle), Math.cos(Math.atan2(dy, dx) - c.angle)));
+  if (angle <= KWON_CONE_HALF) return distance <= KWON_CONE_RANGE + target.radius;
+  const edge = c.angle + (Math.sin(Math.atan2(dy, dx) - c.angle) < 0 ? -KWON_CONE_HALF : KWON_CONE_HALF);
+  const projection = Math.max(0, Math.min(KWON_CONE_RANGE, dx * Math.cos(edge) + dy * Math.sin(edge)));
+  return Math.hypot(dx - projection * Math.cos(edge), dy - projection * Math.sin(edge)) <= target.radius;
+}
+
+function castKwon(self, other, choice) {
+  const n = directionTo(self, other);
+  if (choice === 0) {
+    self.umBackground = 1.5;
+    for (const amp of amplifiers) {
+      if (amp.owner.side !== self.side) ampHit(amp);
+    }
+    for (const oven of ovens) {
+      if (oven.owner.side !== self.side) damageOven(oven);
+    }
+    for (const enemy of balls.filter(b => b.side !== self.side && b.hp > 0 && b.reviving <= 0)) {
+      dealDamage(self, enemy, 8, { source: 'kwonUm', sound: 'domainHit', color: self.def.color });
+      if (isUntouchable(enemy)) continue;
+      enemy.stun=Math.max(enemy.stun,0.7);
+      enemy.stunKnockback = directionTo(self, enemy);
+    }
+  } else if (choice === 1) {
+    const angle = Math.atan2(n.y, n.x);
+    for (let i = 0; i < 3; i++) {
+      const a = angle + (i - 1) * 0.16;
+      projectiles.push({ owner: self, x: self.x, y: self.y, r: 22,
+        vx: Math.cos(a) * 680, vy: Math.sin(a) * 680, wallHits: 0, maxWallHits: 1, img: KWON_NO,
+        onHit(target) {
+          dealDamage(self, target, 8, { source: 'kwonNo', projectile: true, sound: 'hit', color: self.def.color });
+        },
+      });
+    }
+  } else self.cone = { x: self.x, y: self.y, angle: Math.atan2(n.y, n.x), remaining: 0.3 };
+}
+
+function cancelRecoveredFinisher(self, other) {
+  if (!self.finisher || other.hp <= 30) return;
+  self.finisher = null;
+  self.finisherUsed = false;
+  texts.push({ x: self.x, y: self.y - self.radius, text: '줴줴이야! 취소', color: '#8a90a2', life: 1 });
+}
+
+function prepareKwon() {
+  for (const b of balls) {
+    const other = enemyOf(b);
+    cancelRecoveredFinisher(b, other);
+    if (b.def.name !== '권혁주' || b.finisherUsed || b.hp <= 0 || other.hp <= 0 || other.hp > 30 || other.reviving > 0 || other.dodgeTime > 0 || other.tripAir) continue;
+    b.finisherUsed = true;
+    b.finisher = { remaining: 10 };
+    b.roulette = 0; b.cone = null; b.coneFlash = null; b.umBackground = 0;
+    projectiles = projectiles.filter(p => p.owner !== b);
+  }
+}
+
+function drawKwonGold(path, x, y, maxWidth, maxHeight) {
+  const img = loadImage(path);
+  if (!img.complete || !img.naturalWidth) return;
+  const scale = Math.min(maxWidth / img.naturalWidth, maxHeight / img.naturalHeight);
+  const width = img.naturalWidth * scale, height = img.naturalHeight * scale;
+  ctx.drawImage(img, x - width / 2, y - height / 2, width, height);
+}
+
+function drawKwonStatus(b) {
+  if (b.def.name !== '권혁주' || b.hp <= 0) return;
+  ctx.save();
+  if (b.roulette > 0) {
+    const choice = Math.floor((1.5 - b.roulette) * 12) % 3;
+    const x = Math.max(90, Math.min(SIZE - 90, b.x)), y = Math.max(44, b.y - b.radius - 48);
+    drawKwonGold(KWON_GOLD_CHOICES[choice], x, y, 120, 53);
+  }
+  if (b.finisher) {
+    const progress = 1 - b.finisher.remaining / 10;
+    ctx.strokeStyle = '#ffdf75'; ctx.fillStyle = '#ffdf75'; ctx.lineWidth = 4;
+    ctx.shadowColor = '#ffd359'; ctx.shadowBlur = 15 + progress * 20;
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.radius + 10, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress); ctx.stroke();
+    for (let i = 0; i < 14; i++) {
+      const phase = (elapsed * 0.7 + i / 14) % 1;
+      const angle = i * Math.PI * 2 / 14 + elapsed * 0.5;
+      const radius = b.radius + 100 * (1 - phase);
+      ctx.beginPath(); ctx.arc(b.x + Math.cos(angle) * radius, b.y + Math.sin(angle) * radius, 2 + phase * 3, 0, Math.PI * 2); ctx.fill();
+    }
+    const labelX = Math.max(110, Math.min(SIZE - 110, b.x));
+    const labelY = Math.max(45, b.y - b.radius - 50);
+    drawKwonGold(KWON_GOLD_FINISHER, labelX, labelY, 175, 64);
+    ctx.font = `bold ${px(17)} sans-serif`; ctx.textAlign = 'center';
+    ctx.fillText(`${b.finisher.remaining.toFixed(1)}s`, labelX, labelY + 50);
+  }
+  ctx.restore();
+}
+
+const KICK_REACH = 90;
+const KICK_DURATION = 0.2;
+const KICK_WINDUP = 0.2;
+const SPIN_DURATION = 0.5;
+const SPIN_ANGLE = 365 * Math.PI / 180;
+
+CHARACTERS.push({
+  name: '정준우', hp: 195, speed: '보통', size: '작음', color: '#c6ec45',
+  image: 'images/balls/정준우.jpg', ability: '태권도',
+  skills: [{ name: '발차기', cooldown: 3.6,
+    desc: '적을 향해 몸 바깥 90px의 사각형 발차기 범위를 표시한다. 쿨타임 3.6초 후 조준 방향을 고정하고 0.2초 준비한 뒤 몸에서 발을 뻗어 10 피해의 발차기를 날린다. 적중한 적은 강하게 넉백되고 2.5초 동안 매우 빠름 속도가 되며, 그동안 벽에 부딪힐 때마다 5 추가 피해를 받는다.' }],
+  trait: { name: '돌려차기', desc: '발차기를 내보낸 뒤 0.2초 동안 아무도 맞히지 못하면 0.5초 동안 발을 365도 회전시킨다. 돌려차기 시작 시 1/5 확률로 같은 속도로 3.5초 동안 빛나며 이동 속도가 20% 증가한 상태로 연속 회전한다. 연속 회전 종료 후 쿨타임 3.6초가 다시 시작된다. 회전마다 한 번 적중할 수 있으며, 8 피해와 강한 넉백, 2.5초간 매우 빠름 속도 및 벽 충돌당 5 추가 피해를 준다.' },
+  init(self) { self.kick = null; },
+  update(self, other, dt) {
+    if (self.hp <= 0 || self.reviving > 0) return;
+    if (!self.kick) {
+      if (self.cd[0] > 0) return;
+      self.kick = { angle: Math.atan2(other.y - self.y, other.x - self.x), windup: KICK_WINDUP, age: 0, spin: false, hit: false };
+      return;
+    }
+    const k = self.kick;
+    if (k.windup > 0) {
+      const waited = Math.min(dt, k.windup);
+      k.windup = Math.max(0, k.windup - waited);
+      dt -= waited;
+      if (k.windup > 1e-9) return;
+      k.windup = 0;
+      self.cd[0] = 3.6;
+    }
+    const duration = k.spin ? k.spinDuration : KICK_DURATION;
+    const previous = k.age;
+    k.age = Math.min(duration, k.age + dt);
+    // 회전 사이의 각도도 검사해 빠른 회전 중 적을 통과하지 않게 한다.
+    const steps = k.spin ? Math.max(1, Math.ceil((k.age - previous) / SPIN_DURATION * SPIN_ANGLE / 0.08)) : 1;
+    for (let i = 0; i <= steps; i++) {
+      const age = previous + (k.age - previous) * i / steps;
+      const turn = Math.floor(Math.min(age, duration - 1e-9) / SPIN_DURATION);
+      if (k.spin && k.hitTurn !== turn) k.hit = false;
+      if (k.hit) continue;
+      const angle = k.angle + (k.spin ? age / SPIN_DURATION * SPIN_ANGLE : 0);
+      if (kickHits(self, other, angle, kickExtension(k, age))) {
+        k.hit = true;
+        if (k.spin) k.hitTurn = turn;
+        dealDamage(self, other, k.spin ? 8 : 10, { contact: directionTo(self, other), source: 'taekwondo', sound: 'tackle', color: self.def.color });
+        if (other.hp > 0 && other.reviving <= 0) {
+          knockback(other, directionTo(self, other));
+          other.kickRush = { remaining: 2.5, owner: self };
+        }
+      }
+    }
+    if (k.age >= duration) {
+      if (!k.spin && !k.hit) {
+        k.spin = true; k.age = 0;
+        k.spinDuration = Math.random() < 1 / 5 ? 3.5 : SPIN_DURATION;
+        k.hitTurn = -1;
+      }
+      else {
+        if (k.spin && k.spinDuration === 3.5) self.cd[0] = 3.6;
+        self.kick = null;
+      }
+    }
+  },
+});
+
+function kickExtension(k, age = k.age) {
+  if (k.spin) return KICK_REACH;
+  const progress = Math.min(1, age / 0.08);
+  return KICK_REACH * (1 - (1 - progress) ** 3);
+}
+
+function kickHits(self, target, angle, reach = KICK_REACH) {
+  if (target.hp <= 0 || target.reviving > 0 || isUntouchable(target)) return false;
+  if (reach <= 0) return false;
+  const dx = target.x - self.x, dy = target.y - self.y;
+  const forward = dx * Math.cos(angle) + dy * Math.sin(angle);
+  const sideways = -dx * Math.sin(angle) + dy * Math.cos(angle);
+  const along = Math.max(self.radius, Math.min(self.radius + reach, forward));
+  const across = Math.max(-18, Math.min(18, sideways));
+  return Math.hypot(forward - along, sideways - across) <= target.radius;
+}
+
+function drawKick(self) {
+  if (self.def.name !== '정준우' || self.hp <= 0) return;
+  const k = self.kick;
+  const other = enemyOf(self);
+  const angle = k ? k.angle + (k.spin ? k.age / SPIN_DURATION * SPIN_ANGLE : 0)
+    : Math.atan2(other.y - self.y, other.x - self.x);
+  ctx.save(); ctx.translate(self.x, self.y);
+  // 사각형 범위와 실제 공격 판정의 길이·두께를 맞춘다.
+  ctx.save(); ctx.rotate(angle);
+  ctx.fillStyle = k && k.windup > 0 ? 'rgba(255, 186, 85, 0.3)' : 'rgba(198, 236, 69, 0.16)';
+  ctx.strokeStyle = k && k.windup > 0 ? '#ffba55' : '#c6ec45'; ctx.lineWidth = 2;
+  ctx.fillRect(self.radius, -18, KICK_REACH, 36);
+  ctx.strokeRect(self.radius, -18, KICK_REACH, 36); ctx.restore();
+  if (!k || k.windup > 0) { ctx.restore(); return; }
+  if (k.spin) {
+    ctx.strokeStyle = 'rgba(198, 236, 69, 0.5)'; ctx.lineWidth = 12;
+    ctx.beginPath(); ctx.arc(0, 0, self.radius + KICK_REACH - 12, angle - 0.9, angle); ctx.stroke();
+  }
+  ctx.rotate(angle); ctx.lineCap = 'round';
+  const tip = self.radius + kickExtension(k);
+  // 몸 안쪽에서 시작하는 다리와 뒤에 남는 속도선을 함께 그린다.
+  ctx.strokeStyle = 'rgba(198, 236, 69, 0.55)'; ctx.lineWidth = 3;
+  for (const offset of [-18, 18]) {
+    ctx.beginPath(); ctx.moveTo(self.radius - 10, offset); ctx.lineTo(tip - 22, offset); ctx.stroke();
+  }
+  const foot = loadImage('images/balls/정준우발도복.png');
+  if (foot.complete && foot.naturalWidth) {
+    const base = self.radius * 0.45;
+    const length = tip - base;
+    // 가로·세로를 같은 비율로 확대해 도복과 발의 원래 비율을 보존한다.
+    const width = length * foot.naturalWidth / foot.naturalHeight;
+    ctx.save(); ctx.translate(base, 0); ctx.rotate(Math.PI / 2);
+    ctx.drawImage(foot, -width / 2, -length, width, length);
+    ctx.restore();
+  } else {
+    ctx.strokeStyle = '#e8efff'; ctx.lineWidth = 17;
+    ctx.beginPath(); ctx.moveTo(self.radius * 0.45, 0); ctx.lineTo(Math.max(self.radius * 0.45, tip - 12), 0); ctx.stroke();
+    ctx.fillStyle = self.def.color; ctx.fillRect(tip - 24, -18, 24, 36);
+  }
+  ctx.restore();
+}
+
+CHARACTERS.push({
+  name: '정성연', hp: 205, speed: '보통', size: '보통', color: '#dc779a',
+  image: 'images/balls/정성연.jpg', ability: '폭력',
+  skills: [{ name: '주먹질', cooldown: 3.5, desc: '3.5초마다 적에게 20 피해의 주먹을 발사한다. 주먹이 벽에 닿으면 사라지고 유리 파편 3개가 퍼진다. 파편은 0.4초 동안 약 140px 이동 후 멈추며 상대에게 2, 정성연에게 1 피해를 준다. 적중해도 남으며, 떨어졌다 다시 접촉하면 재차 피해를 준다. 생성 7초 후 소멸한다.' }],
+  trait: { name: '출석정지', desc: '상대 HP가 최대 HP의 절반 이하가 되면 한 번 발동한다. 7초간 중앙으로 돌아가려 하며 주먹을 발사하지 못한다. 자물쇠가 표시되며 유리에 면역이다. 종료 시 12방향으로 주먹을 발사한다. 종료 후 임의 방향으로 이동하며, 이 주먹은 벽에 닿으면 3초간 유지되는 유리 파편을 각각 2개 만든다. 유리 면역이 5초 더 유지된다.' },
+  init(self) { self.suspension = 0; self.suspensionUsed = false; self.glassImmunity = 0; },
+  modifyIncoming(self, damage, info) {
+    if (info.source === 'glass') {
+      if (self.suspension > 0 || self.glassImmunity > 0) return 0;
+      return Math.max(0, damage - 1);
+    }
+    return damage;
+  },
+  update(self, other, dt) {
+    if (self.hp <= 0 || self.reviving > 0) return;
+    if (self.suspension > 0) {
+      self.suspension = Math.max(0, self.suspension - dt);
+      if (self.suspension < 1e-9) {
+        self.suspension = 0;
+        self.glassImmunity = 5;
+        const angle = Math.random() * Math.PI * 2;
+        setDirection(self, Math.cos(angle), Math.sin(angle));
+        for (let i = 0; i < 12; i++) fireFist(self, i * Math.PI * 2 / 12, 2, 3);
+        self.cd[0] = 3.5;
+      }
+      return;
+    }
+    if (self.cd[0] <= 0) {
+      fireFist(self, Math.atan2(other.y - self.y, other.x - self.x));
+      self.cd[0] = 3.5;
+    }
+  },
+});
+
+function prepareSuspension() {
+  for (const self of balls) {
+    if (self.def.name !== '정성연' || self.hp <= 0) continue;
+    const other = enemyOf(self);
+    if (!self.suspensionUsed && other.hp > 0 && other.reviving <= 0 && other.hp <= other.maxHp / 2) {
+      self.suspensionUsed = true; self.suspension = 7;
+      texts.push({ x: self.x, y: self.y - self.radius, text: '출석정지!', color: self.def.color, life: 1.5 });
+    }
+    if (self.suspension > 0) {
+      const dx = SIZE / 2 - self.x, dy = SIZE / 2 - self.y;
+      const distance = Math.hypot(dx, dy);
+      const speed = Math.min(self.speed, distance * 4);
+      self.vx = distance ? dx / distance * speed : 0;
+      self.vy = distance ? dy / distance * speed : 0;
+    }
+  }
+}
+
+function fireFist(owner, angle, shardCount = 3, shardLifetime = 7) {
+  const nx = Math.cos(angle), ny = Math.sin(angle);
+  projectiles.push({ owner, x: owner.x, y: owner.y, r: 19, vx: nx * 480, vy: ny * 480,
+    wallHits: 0, maxWallHits: 1, img: 'images/balls/정성연주먹.png', rotateWithVelocity: true,
+    onHit(target, n) { dealDamage(owner, target, 20, { source: 'fist', projectile: true, contact: n, sound: 'tackle', color: owner.def.color }); },
+    onWall(p) {
+      const inward = Math.atan2(SIZE / 2 - p.y, SIZE / 2 - p.x);
+      for (let i = 0; i < shardCount; i++) {
+        const a = inward + (i - (shardCount - 1) / 2) * 0.55;
+        glassShards.push({ owner, x: p.x, y: p.y, vx: Math.cos(a) * 350, vy: Math.sin(a) * 350, r: 8, life: shardLifetime, moving: 0.4, angle: a });
+      }
+    },
+  });
+}
+
+function updateGlass(dt) {
+  glassShards = glassShards.filter(g => {
+    g.life -= dt;
+    if (g.life <= 0) return false;
+    const travel = Math.min(dt, g.moving);
+    g.moving = Math.max(0, g.moving - dt);
+    g.x = Math.max(g.r, Math.min(SIZE - g.r, g.x + g.vx * travel));
+    g.y = Math.max(g.r, Math.min(SIZE - g.r, g.y + g.vy * travel));
+    if (!g.touching) g.touching = new Set();
+    for (const b of balls) {
+      const overlaps = Math.hypot(b.x - g.x, b.y - g.y) <= b.radius + g.r;
+      if (!overlaps || b.hp <= 0 || b.reviving > 0 || b.suspension > 0 || b.glassImmunity > 0 || isUntouchable(b)) {
+        g.touching.delete(b);
+        continue;
+      }
+      if (!g.touching.has(b)) {
+        g.touching.add(b);
+        dealDamage(g.owner, b, 2, { source: 'glass', sound: 'hit', color: '#b0efff' });
+      }
+    }
+    return true;
+  });
+}
+
+function drawGlass() {
+  const shardImage = loadImage('images/balls/정성연유리파편.png');
+  for (const g of glassShards) {
+    ctx.save(); ctx.translate(g.x, g.y); ctx.rotate(g.angle);
+    ctx.globalAlpha = Math.min(1, g.life);
+    if (shardImage.complete && shardImage.naturalWidth) {
+      const size = g.r * 3;
+      ctx.rotate(Math.PI / 4);
+      ctx.drawImage(shardImage, -size / 2, -size / 2, size, size);
+    } else {
+    ctx.fillStyle = 'rgba(165, 235, 255, 0.75)'; ctx.strokeStyle = '#dcf9ff'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(11, 0); ctx.lineTo(-7, -6); ctx.lineTo(-4, 8); ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  for (const b of balls) {
+    if (!(b.suspension > 0) || b.hp <= 0) continue;
+    ctx.save(); ctx.strokeStyle = '#dc779a'; ctx.setLineDash([6, 5]);
+    ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(SIZE / 2, SIZE / 2); ctx.stroke();
+    ctx.fillStyle = '#ffc1d8'; ctx.font = `bold ${px(14)} sans-serif`; ctx.textAlign = 'center';
+    ctx.fillText(`출석정지 ${b.suspension.toFixed(1)}s`, Math.max(80, Math.min(SIZE - 80, b.x)), Math.max(20, b.y - b.radius - 15)); ctx.restore();
+  }
+}
+
+const MOON_OUTFITS = ['사복', '가죽자켓', '붉은 옷'];
+const MOON_IMAGES = ['images/balls/문지성.jpg', 'images/balls/문지성가죽자켓.png', 'images/balls/문지성붉은옷.png'];
+const MOON_OUTFIT_ICONS = ['images/balls/문지성사복표시.png', 'images/balls/문지성가죽자켓표시.png', 'images/balls/문지성붉은옷표시.png'];
+const MOON_RADAR_RANGE = 220;
+const MOON_RADAR_SPEED = Math.PI;
+
+CHARACTERS.push({
+  name: '문지성', hp: 190, speed: '보통', size: '보통', color: '#a3a7ae',
+  image: MOON_IMAGES[0], ability: '트레쉬토크',
+  skills: [{ name: '아쉬운 플레이!', cooldown: 0, desc: '45도·사거리 220px 레이더가 초당 180도로 회전한다. 적이 감지 범위에 진입할 때마다 아쉬운 플레이! 텍스트가 추적하여 7 피해를 준다. 범위를 벗어났다가 다시 들어오면 재발사한다.' }],
+  trait: { name: '사복데이', desc: '사복으로 시작한다. 7초마다 1.5초 동안 옷을 돌려 사복 / 가죽자켓 / 붉은 옷 중 하나를 무작위로 고른다. 사복: 추가 효과 없음. 붉은 옷: 레이더 회전 속도 2배. 가죽자켓: 레이더 22.5도·맵 끝까지 감지, 접촉 시 3 피해와 자신에게서 멀어지는 방향으로 상대 경로 변경.' },
+  init(self) {
+    self.outfit = 0; self.outfitCd = 7; self.outfitRoll = 0;
+    MOON_IMAGES.forEach(loadImage);
+    MOON_OUTFIT_ICONS.forEach(loadImage);
+    self.radarAngle = Math.random() * Math.PI * 2; self.radarInside = false;
+  },
+  update(self, other, dt) {
+    if (self.hp <= 0 || self.reviving > 0) return;
+    if (self.outfitRoll > 0) {
+      self.outfitRoll = Math.max(0, self.outfitRoll - dt);
+      if (self.outfitRoll < 1e-9) {
+        self.outfitRoll = 0; self.outfit = Math.floor(Math.random() * 3); self.outfitCd = 7;
+      }
+    } else {
+      self.outfitCd = Math.max(0, self.outfitCd - dt);
+      if (self.outfitCd === 0) self.outfitRoll = 1.5;
+    }
+    const steps = Math.max(1, Math.ceil(dt / (1 / 60)));
+    for (let i = 0; i < steps; i++) {
+      self.radarAngle = (self.radarAngle + MOON_RADAR_SPEED * (self.outfit === 2 ? 2 : 1) * dt / steps) % (Math.PI * 2);
+      self.radarTargets ||= new Map();
+      for (const target of balls.filter(b => b.side !== self.side)) {
+      const inside = moonRadarHits(self, target);
+      if (inside && !self.radarTargets.get(target)) {
+        projectiles.push({ owner: self, target, homing: true, label: '아쉬운 플레이!',
+          x: self.x, y: self.y, r: 10, vx: 0, vy: 0, wallHits: 0,
+          onHit(target) { dealDamage(self, target, 7, { source: 'trashTalk', projectile: true, sound: 'hit', color: self.def.color }); },
+        });
+      }
+      self.radarTargets.set(target, inside);
+      }
+    }
+  },
+  onContact(self, other, n) {
+    if (self.outfit !== 1) return;
+    dealDamage(self, other, 3, { contact: n, source: 'leatherJacket', sound: 'bump', color: self.def.color });
+    if (!other.finisher && other.stun <= 0) setDirection(other, n.x, n.y);
+  },
+  drawUnder(self) {
+    const half = (self.outfit === 1 ? 11.25 : 22.5) * Math.PI / 180;
+    const range = self.outfit === 1 ? SIZE * Math.SQRT2 : MOON_RADAR_RANGE;
+    ctx.save(); ctx.fillStyle = self.outfit === 2 ? 'rgba(255, 80, 95, 0.15)' : 'rgba(163, 167, 174, 0.13)';
+    ctx.strokeStyle = self.outfit === 2 ? '#ff6578' : self.def.color; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(self.x, self.y); ctx.arc(self.x, self.y, range, self.radarAngle - half, self.radarAngle + half);
+    ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
+  },
+});
+
+function moonRadarHits(self, target) {
+  if (target.hp <= 0 || target.reviving > 0 || isUntouchable(target)) return false;
+  const dx = target.x - self.x, dy = target.y - self.y;
+  const distance = Math.hypot(dx, dy);
+  const range = self.outfit === 1 ? SIZE * Math.SQRT2 : MOON_RADAR_RANGE;
+  if (distance > range + target.radius) return false;
+  if (distance <= target.radius) return true;
+  const difference = Math.abs(Math.atan2(Math.sin(Math.atan2(dy, dx) - self.radarAngle), Math.cos(Math.atan2(dy, dx) - self.radarAngle)));
+  const half = (self.outfit === 1 ? 11.25 : 22.5) * Math.PI / 180;
+  return difference <= half + Math.asin(Math.min(1, target.radius / distance));
+}
+
+function drawMoonOutfit(b) {
+  if (b.def.name !== '문지성' || b.hp <= 0) return;
+  const index = b.outfitRoll > 0 ? Math.floor((1.5 - b.outfitRoll) * 10) % 3 : b.outfit;
+  const img = loadImage(MOON_OUTFIT_ICONS[index]);
+  if (!img.complete || !img.naturalWidth) return;
+  const size = 38;
+  const x = Math.max(size / 2 + 2, Math.min(SIZE - size / 2 - 2, b.x));
+  const y = Math.max(size / 2 + 2, b.y - b.radius - size / 2 - 8);
+  const scale = size / Math.max(img.naturalWidth, img.naturalHeight);
+  const width = img.naturalWidth * scale, height = img.naturalHeight * scale;
+  ctx.save();
+  ctx.drawImage(img, x - width / 2, y - height / 2, width, height);
+  ctx.restore();
+}
+
+CHARACTERS.push({
+  name:'김지성', hp:210, speed:'느림', size:'큼', color:'#603a24', image:'images/balls/김지성.jpg', ability:'지진',
+  skills:[{name:'점프',cooldown:6,desc:'처음 6초 후 발동하고 이후 6초마다 1초간 점프하며 피격과 부가효과를 무시한다. 착지 지점에 반지름 210px 균열을 4초간 남긴다. 생성 시 범위 안 적에게 15 피해와 2초 기절·차징 일시정지 후 바깥 방향 넉백. 넉백 후 1.5초 동안 벽에 부딪힐 때마다 2 추가 피해. 균열 위 적에게 초당 2 피해.'}],
+  trait:{name:'지방',desc:'받는 넉백의 추가 가속 효과가 절반으로 감소한다.'},
+  init(self){self.jumpTime=0;},
+  update(self,other,dt){
+    if(self.hp<=0||self.reviving>0)return;
+    if(self.jumpTime>0){
+      self.jumpTime=Math.max(0,self.jumpTime-dt);
+      if(self.jumpTime<1e-9){
+        self.jumpTime=0;
+        sound.play('quakeLanding');
+        const q={owner:self,x:self.x,y:self.y,radius:210,activeAt:elapsed,ticks:new Map()};quakes.push(q);
+        for(const target of balls){
+          if(target.side===self.side||target.hp<=0||target.reviving>0||isUntouchable(target)||Math.hypot(target.x-q.x,target.y-q.y)>q.radius+target.radius)continue;
+          dealDamage(self,target,15,{source:'quakeLanding',sound:false,color:self.def.color});
+          if(isUntouchable(target)||target.hp<=0||target.reviving>0)continue;
+          target.stun=Math.max(target.stun,2);target.quakeShake=2;
+          const n=directionTo(q,target);target.stunKnockback={...n,boost:3,quakeOwner:self,quake:q};
+        }
+      }
+      return;
+    }
+    if(self.cd[0]<=0){self.jumpTime=1;self.cd[0]=6;self.kickRush=null;self.boost=0;sound.play('quakeJump');}
+  },
+  drawUnder(self){
+    if(!(self.jumpTime>0))return;
+    ctx.save();ctx.fillStyle='rgba(0,0,0,0.4)';ctx.beginPath();ctx.ellipse(self.x,self.y,self.radius*.9,self.radius*.35,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#d2a16b';ctx.lineWidth=3;ctx.setLineDash([10,7]);ctx.fillStyle='rgba(127,82,43,0.12)';ctx.beginPath();ctx.arc(self.x,self.y,210,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+  }
+});
+function onQuake(q,b){return b.side!==q.owner.side&&b.hp>0&&b.reviving<=0&&!isUntouchable(b)&&elapsed<q.activeAt+4&&Math.hypot(b.x-q.x,b.y-q.y)<=q.radius+b.radius;}
+function updateQuakes(dt){
+  quakes=quakes.filter(q=>elapsed<q.activeAt+4);
+  for(const q of quakes)for(const b of balls){
+    if(!onQuake(q,b)){q.ticks.delete(b);continue;}
+    let tick=(q.ticks.get(b)||0)+dt;
+    while(tick>=1-1e-9&&b.hp>0){tick=Math.max(0,tick-1);dealDamage(q.owner,b,2,{source:'quake',sound:'wallHit',color:q.owner.def.color});}
+    q.ticks.set(b,tick);
+  }
+}
+function drawQuakes(){
+  const img=loadImage('images/balls/김지성원형균열.png');ctx.save();
+  for(const q of quakes){ctx.globalAlpha=Math.min(1,q.activeAt+4-elapsed);if(img.complete&&img.naturalWidth)ctx.drawImage(img,q.x-q.radius,q.y-q.radius,q.radius*2,q.radius*2);}
+  ctx.restore();
+}
+const ART_COLORS = ['#f46aa4', '#5bcefa', '#ffe16a', '#9be16d', '#b69aff'];
+CHARACTERS.push({
+  name: '김재윤', hp: 190, speed: '보통', size: '보통', color: '#00965e', image: 'images/balls/김재윤.jpg', ability: '그림',
+  skills: [{ name: '그림', cooldown: 4, desc: '첫 대기 3초, 이후 대기 4초 후 1초 고민해 페인트 또는 그리기를 무작위로 3초 사용한다. 페인트: 1·3초에 총 2발, 직격 5 피해, 사거리 320px. 반지름 105px 장판은 8초 유지되며 최초 접촉 4 및 초당 4 피해와 50% 둔화. 장판별 피해 중첩 가능. 그리기: 초당 1회전, 펜 접촉 3 피해. 잉크는 8.5초 유지되며 접촉 2 및 초당 2 피해. 서로 다른 회전에서 그린 선의 피해는 중첩된다. 종료 후 쿨타임이 다시 시작된다. 패시브 낙서: 그리는 동안 적과 본체 접촉이 없으면 마지막 잉크 위치에 졸라맨을 남긴다. 1초간 빛난 뒤 적을 추적해 피해 4를 준다.' }],
+  trait: { name: '미련남', desc: '상대 공격으로 체력이 8 이하가 되거나 치명상을 받으면 경기당 한 번 체력 8로 발동한다. 1.5초간 전체 정지 연출 후 8초 동안 모든 피해·부가효과·넉백에 면역이 되어 보통 속도로 적을 추적해 달라붙는다. 매초 체력 1을 소모하며 밀착 중 매초 2~4의 무작위 피해를 준다. 체력이 다하기 전에 상대를 쓰러뜨리지 못하면 패배한다.' },
+  init(self) { self.art = null; self.artRoll = 0; self.artAngle = Math.random() * Math.PI * 2; self.cd[0] = 3;self.mireunUsed=false;self.mireun=null;loadImage('images/balls/김재윤 미련남.jpg');loadImage('images/balls/김재윤 미련남-배경제거.png');for(const hand of ['왼손1','왼손2','오른손1','오른손2'])loadImage('images/balls/김재윤 '+hand+'.png'); },
+  onDamaged(self){if(self.hp<=8)startMireun(self);},
+  onLethal(self){startMireun(self);},
+  onContact(self) { if (self.art?.kind === 'draw') self.art.contacted = true; },
+  update(self, other, dt) {
+    if (self.hp <= 0 || self.reviving > 0) return;
+    if(self.mireun)return;
+    if (!self.art) {
+      if (self.artRoll > 0) {
+        self.artRoll = Math.max(0, self.artRoll - dt);
+        if (self.artRoll < 1e-9) { self.artRoll = 0; self.art = { kind: Math.random() < 0.5 ? 'paint' : 'draw', age: 0, shots: 0, contacted: false, penTouch: false }; }
+      } else if (self.cd[0] <= 0) self.artRoll = 1;
+      return;
+    }
+    const a = self.art, previous = a.age;
+    a.age = Math.min(3, a.age + dt);
+    if (a.kind === 'paint') {
+      while (a.shots < 2 && a.age >= 1 + a.shots * 2 - 1e-9) {
+        a.shots++;
+        const n = directionTo(self, other);
+        artBalls.push({ owner: self, x: self.x, y: self.y, vx: n.x * 440, vy: n.y * 440, distance: 0, r: 12, color: ART_COLORS[Math.floor(Math.random() * 5)] });
+      }
+    } else {
+      if (other.reviving <= 0 && Math.hypot(other.x - self.x, other.y - self.y) <= self.radius + other.radius + 1) a.contacted = true;
+      const steps = Math.max(1, Math.ceil((a.age - previous) * Math.PI * 2 / 0.1));
+      let x = a.tipX ?? self.x + Math.cos(self.artAngle) * 115, y = a.tipY ?? self.y + Math.sin(self.artAngle) * 115;
+      for (let i = 0; i < steps; i++) {
+        self.artAngle += Math.PI * 2 * (a.age - previous) / steps;
+        a.inkStrokes ||= [];
+        const turn = Math.min(2, Math.floor(((previous + (a.age - previous) * i / steps) + 1e-9)));
+        a.inkStrokes[turn] ||= {};
+        const tx = self.x + Math.cos(self.artAngle) * 115, ty = self.y + Math.sin(self.artAngle) * 115;
+        artGround.push({ owner: self, kind: 'ink', stroke: a.inkStrokes[turn], x1: x, y1: y, x2: tx, y2: ty, radius: 4, expires: elapsed + 8.5, color: self.def.color });
+        const hit = other.hp > 0 && other.reviving <= 0 && artDistance(other, self.x + Math.cos(self.artAngle) * self.radius, self.y + Math.sin(self.artAngle) * self.radius, tx, ty) <= other.radius + 7;
+        if (hit && !a.penTouch) dealDamage(self, other, 3, { source: 'artPen', contact: directionTo(self, other), sound: 'hit', color: self.def.color });
+        a.penTouch = hit; x = tx; y = ty;
+      }
+      a.tipX = x; a.tipY = y;
+    }
+    if (a.age >= 3 - 1e-9) {
+      if (a.kind === 'draw' && !a.contacted && !(isUntouchable(other))) projectiles.push({ owner: self, target: other, homing: true, speed: 320, stickman: true, walkAge: 0, x: a.tipX ?? self.x, y: a.tipY ?? self.y, r: 12, onHit(target) { dealDamage(self, target, 4, { source: 'doodle', projectile: true, sound: 'hit', color: self.def.color }); } });
+      self.art = null; self.cd[0] = 4;
+    }
+  },
+});
+
+function artDistance(b, x1, y1, x2, y2) {
+  const dx = x2 - x1, dy = y2 - y1, l = dx * dx + dy * dy;
+  const t = l ? Math.max(0, Math.min(1, ((b.x - x1) * dx + (b.y - y1) * dy) / l)) : 0;
+  return Math.hypot(b.x - x1 - dx * t, b.y - y1 - dy * t);
+}
+function artTouches(m, b) { return m.owner.side !== b.side && elapsed < m.expires && artDistance(b, m.x1, m.y1, m.x2, m.y2) <= b.radius + m.radius; }
+
+function updateArt(dt) {
+  artBalls = artBalls.filter(p => {
+    const x = p.x, y = p.y, travel = Math.min(440 * dt, 320 - p.distance);
+    p.x = Math.max(p.r, Math.min(SIZE - p.r, p.x + p.vx / 440 * travel)); p.y = Math.max(p.r, Math.min(SIZE - p.r, p.y + p.vy / 440 * travel)); p.distance += travel;
+    const enemy = balls.find(b => b.side !== p.owner.side && b.hp > 0 && b.reviving <= 0 && !(isUntouchable(b)) && artDistance(b, x, y, p.x, p.y) <= b.radius + p.r);
+    const hitAmp = interceptAmp(p,x,y);
+    const hit = enemy && !(isUntouchable(enemy)) && artDistance(enemy, x, y, p.x, p.y) <= enemy.radius + p.r;
+    if (!hit && !hitAmp && p.distance < 320 && p.x > p.r && p.x < SIZE - p.r && p.y > p.r && p.y < SIZE - p.r) return true;
+    if (hit) dealDamage(p.owner, enemy, 5, { source: 'artBall', projectile: true, sound: 'hit', color: p.color });
+    sound.play('paintSpill');
+    const pool={ owner: p.owner, kind: 'paint', x1: p.x, y1: p.y, x2: p.x, y2: p.y, radius: 105, angle: Math.atan2(p.vy, p.vx), expires: elapsed + 8, color: p.color, hitTargets: new Set() };
+    artGround.push(pool);
+    for(const target of balls){
+      if(target.hp<=0||target.reviving>0||isUntouchable(target)||!artTouches(pool,target))continue;
+      dealDamage(p.owner,target,4,{source:'artPaintBurst',sound:'hit',color:p.color});
+      pool.hitTargets.add(target);
+      target.artExposure ||= new Map();target.artExposure.set(pool,0);
+    }
+    return false;
+  });
+  artGround = artGround.filter(m => elapsed < m.expires);
+  for (const b of balls) {
+    if (b.hp <= 0 || b.reviving > 0) { b.artExposure = new Map(); continue; }
+    b.artExposure ||= new Map();
+    const overlapping = new Map();
+    for (const m of artGround) {
+      if (artTouches(m, b)) overlapping.set(m.kind === 'ink' ? (m.stroke || m) : m, m);
+    }
+    for (const key of b.artExposure.keys()) if (!overlapping.has(key)) b.artExposure.delete(key);
+    for (const [key, m] of overlapping) {
+      const damage = m.kind === 'ink' ? 2 : 4;
+      if (!b.artExposure.has(key)) {
+        m.hitTargets ||= new Set();
+        if (m.kind === 'ink' || !m.hitTargets.has(b)) {
+          dealDamage(m.owner, b, damage, {source:'artContact', sound:'hit', color:m.color});
+          m.hitTargets.add(b);
+        }
+        b.artExposure.set(key, 0);
+      }
+      let tick = b.artExposure.get(key) + dt;
+      while (tick >= 1 - 1e-9 && b.hp > 0) {
+        tick = Math.max(0, tick - 1);
+        dealDamage(m.owner, b, damage, {source:m.kind === 'ink'?'artInk':'artPaint', sound:'hit', color:m.color});
+      }
+      b.artExposure.set(key, tick);
+    }
+  }
+}
+
+function drawArtGround() {
+  const spilled = loadImage('images/balls/김재윤원형페인트.png');
+  ctx.save(); ctx.lineCap = 'round';
+  for (const m of artGround) {
+    ctx.globalAlpha = (m.kind === 'paint' ? 1 : 0.6) * Math.min(1, m.expires - elapsed); ctx.fillStyle = m.color; ctx.strokeStyle = m.color;
+    if (m.kind === 'paint') {
+      if (spilled.complete && spilled.naturalWidth) {
+        ctx.save(); ctx.translate(m.x1, m.y1); ctx.rotate((m.angle || 0) - Math.PI / 4);
+        const size = m.radius * 2.2;
+        ctx.drawImage(spilled, -size / 2, -size / 2, size, size);
+        ctx.restore();
+      } else { ctx.beginPath(); ctx.arc(m.x1, m.y1, m.radius, 0, Math.PI * 2); ctx.fill(); }
+    }
+    else { ctx.lineWidth = m.radius * 2; ctx.beginPath(); ctx.moveTo(m.x1, m.y1); ctx.lineTo(m.x2, m.y2); ctx.stroke(); }
+  }
+  ctx.restore();
+}
+function drawArt() {
+  const bucket = loadImage('images/balls/김재윤페인트통.png');
+  ctx.save();
+  for (const p of artBalls) {
+    if (bucket.complete && bucket.naturalWidth) {
+      const size = p.r * 3;
+      const height = size * bucket.naturalHeight / bucket.naturalWidth;
+      ctx.drawImage(bucket, p.x - size / 2, p.y - height / 2, size, height);
+    } else { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); }
+  }
+  ctx.restore();
+}
+function drawArtist(b) {
+  if (b.def.name !== '김재윤' || b.hp <= 0) return;
+  ctx.save();
+  if (b.artRoll > 0 || b.art) {
+    const drawing = b.art ? b.art.kind === 'draw' : Math.floor((1 - b.artRoll) * 10) % 2;
+    const img = loadImage(drawing ? 'images/balls/김재윤종이그림.png' : 'images/balls/김재윤페인트통.png');
+    if (img.complete && img.naturalWidth) {
+      const scale = Math.min(48 / img.naturalWidth, 48 / img.naturalHeight);
+      const width = img.naturalWidth * scale, height = img.naturalHeight * scale;
+      const x = Math.max(26, Math.min(SIZE - 26, b.x));
+      const y = Math.max(26, b.y - b.radius - 32);
+      ctx.drawImage(img, x - width / 2, y - height / 2, width, height);
+    }
+  }
+  if (b.art?.kind === 'draw') {
+    ctx.translate(b.x, b.y); ctx.rotate(b.artAngle); ctx.strokeStyle = '#f5d393'; ctx.lineWidth = 9;
+    ctx.beginPath(); ctx.moveTo(b.radius, 0); ctx.lineTo(109, 0); ctx.stroke();
+    ctx.fillStyle = '#222'; ctx.beginPath(); ctx.moveTo(108, -5); ctx.lineTo(119, 0); ctx.lineTo(108, 5); ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+}
+
+CHARACTERS.push({
+  name: '이지원', hp: 190, speed: '보통', size: '보통', color: '#253b80', image: 'images/balls/이지원.jpg', ability: '독서',
+  skills: [{ name: '다크심리학', cooldown: 3, desc: '3초 후 멀리 보통 크기의 책 한 권을 소환한다. 경기장에는 책이 하나만 존재하며, 수집 1초 후 다음 책을 소환한다. 3권을 모으면 1.5초 정지·충전 후 35 피해의 암흑 마법을 쏜다. 적중한 적은 1.5초 경직·스킬 쿨타임 정지, 5초간 50% 감속과 초당 1의 독 피해를 받는다. 기존 투사체는 경직의 영향을 받지 않는다. 발사 후 스택 초기화 및 쿨타임 3초.' }],
+  trait: { name: '갓블레스유', desc: '적 공격을 32% 확률로 회피한다. 회피에 성공하면 2초간 깜박이며 무적이 되고 이동 속도가 30% 증가한다. 무적 중에는 지정 불가로 레이더에 감지되지 않으며 추적 대상에서 제외된다. 책을 제외한 투사체는 통과한다. 이동안 자신을 제외한 경기 전체가 30% 속도로 흐른다. 회피한 공격은 양서지 공격력 증가와 코딱지 감속을 적용하지 않는다.' },
+  init(self) { self.bookStack = 0; self.booksSpawned = 0; self.readCharge = 0; self.dodgeTime = 0; },
+  modifyIncoming(self, damage) {
+    if (isUntouchable(self)) return 0;
+    if (damage > 0 && Math.random() < 0.32) {
+      self.dodgeTime = 2; self.slow = 0;
+      return 0;
+    }
+    return damage;
+  },
+  update(self, other, dt) {
+    if (self.hp <= 0 || self.reviving > 0) return;
+    if (self.readCharge > 0) {
+      self.readCharge = Math.max(0, self.readCharge - dt);
+      if (self.readCharge < 1e-9) {
+        self.readCharge = 0;
+        self.darkMagic = { x: self.x, y: self.y, targetX: other.x, targetY: other.y, remaining: 0.5 };
+        other.darkAura = 0.5;
+        dealDamage(self, other, 35, { source: 'darkPsychology', sound: 'domainHit', color: self.def.color });
+        if (!(isUntouchable(other)) && other.reviving <= 0 && other.hp > 0) {
+          other.stun = Math.max(other.stun, 1.5);
+          other.darkBurn = { owner: self, delay: 0, remaining: 5, tick: 0 };
+        }
+        self.bookStack = 0; self.booksSpawned = 0; self.cd[0] = 3;
+      }
+      return;
+    }
+    if (self.booksSpawned < 3 && self.cd[0] <= 0 && readingBooks.length === 0) {
+      const r = BALL_SIZE['보통'];
+      let x, y;
+      for (let attempt = 0; attempt < 100; attempt++) {
+        x = r + Math.random() * (SIZE - 2 * r); y = r + Math.random() * (SIZE - 2 * r);
+        if (Math.hypot(x - self.x, y - self.y) >= 180) break;
+      }
+      if (Math.hypot(x - self.x, y - self.y) < 180) {
+        x = self.x < SIZE / 2 ? SIZE - r : r;
+        y = self.y < SIZE / 2 ? SIZE - r : r;
+      }
+      readingBooks.push({ owner: self, x, y, radius: r });
+      self.booksSpawned++;
+    }
+    readingBooks = readingBooks.filter(book => {
+      if (book.owner !== self || Math.hypot(book.x - self.x, book.y - self.y) > book.radius + self.radius) return true;
+      self.bookStack++;
+      if (self.bookStack < 3) self.cd[0] = 1;
+      return false;
+    });
+    if (self.bookStack >= 3) self.readCharge = 1.5;
+  },
+});
+
+function drawReadingBooks() {
+  ctx.save();
+  const img = loadImage('images/balls/이지원다크심리학.jpeg');
+  for (const book of readingBooks) {
+    ctx.save(); ctx.beginPath(); ctx.arc(book.x, book.y, book.radius, 0, Math.PI * 2);
+    ctx.fillStyle = '#080808'; ctx.fill(); ctx.clip();
+    if (img.complete && img.naturalWidth) {
+      const scale = book.radius * 2 / Math.max(img.naturalWidth, img.naturalHeight);
+      const width = img.naturalWidth * scale, height = img.naturalHeight * scale;
+      ctx.drawImage(img, book.x - width / 2, book.y - height / 2, width, height);
+    }
+    ctx.restore(); ctx.strokeStyle = book.owner.def.color; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(book.x, book.y, book.radius, 0, Math.PI * 2); ctx.stroke();
+  }
+  ctx.restore();
+}
+function drawReader(b) {
+  ctx.save();
+  if (b.darkMagic) {
+    const m = b.darkMagic, age = 0.5 - m.remaining;
+    ctx.save(); ctx.globalAlpha = Math.min(1, m.remaining / 0.15); ctx.lineCap = 'round';
+    ctx.shadowColor = '#ac42ff'; ctx.shadowBlur = 30;
+    for (const [width, color] of [[24, 'rgba(107, 0, 185, 0.4)'], [12, '#240036'], [4, '#c56cff']]) {
+      ctx.strokeStyle = color; ctx.lineWidth = width; ctx.beginPath(); ctx.moveTo(m.x, m.y);
+      for (let i = 1; i <= 18; i++) {
+        const t = i / 18;
+        const wave = Math.sin(t * 24 + age * 35) * 9 * Math.sin(t * Math.PI);
+        ctx.lineTo(m.x + (m.targetX - m.x) * t + wave, m.y + (m.targetY - m.y) * t - wave);
+      }
+      ctx.stroke();
+    }
+    ctx.strokeStyle = '#ad58ef'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(m.targetX, m.targetY, 15 + age * 90, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#17001f'; ctx.beginPath(); ctx.arc(m.targetX, m.targetY, 12 + age * 35, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+  const chargingEnemy = balls.find(other => other !== b && other.readCharge > 0 && other.hp > 0);
+  if (chargingEnemy) {
+    const progress = 1 - chargingEnemy.readCharge / 1.5;
+    ctx.shadowColor = '#c591ff'; ctx.shadowBlur = 12 + progress * 35;
+    ctx.strokeStyle = `rgba(210, 171, 255, ${0.2 + progress * 0.8})`; ctx.lineWidth = 3 + progress * 5;
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.radius + 7 + progress * 5, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = `rgba(194, 142, 255, ${progress * 0.3})`; ctx.fill();
+  }
+  if (b.darkAura > 0) {
+    ctx.shadowColor = '#10071c'; ctx.shadowBlur = 35;
+    ctx.fillStyle = 'rgba(8, 0, 16, 0.65)'; ctx.beginPath(); ctx.arc(b.x, b.y, b.radius + 10, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#43215c'; ctx.lineWidth = 5; ctx.stroke();
+  }
+  if (b.darkBurnFlash > 0) {
+    ctx.save(); ctx.globalAlpha = Math.min(1, b.darkBurnFlash / 0.12);
+    ctx.shadowColor = '#bd9bff'; ctx.shadowBlur = 32;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)'; ctx.strokeStyle = '#8f72c7'; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.radius + 8, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.restore();
+  }
+  if (b.darkBurn) {
+    const poison = loadImage('images/balls/이지원독.png');
+    if (poison.complete && poison.naturalWidth) {
+      const size = b.radius * (3.1 + Math.sin(elapsed * 4) * 0.12);
+      ctx.save();
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 0.45 * Math.min(1, b.darkBurn.remaining / 0.35);
+      ctx.drawImage(poison, b.x - size / 2, b.y - size / 2, size, size);
+      ctx.restore();
+    }
+  }
+  if (b.def.name === '이지원' && b.hp > 0) {
+    const passive = loadImage('images/balls/이지원다크심리학패시브.jpeg');
+    const iconY = Math.max(22, b.y - b.radius - 30);
+    if (passive.complete && passive.naturalWidth) {
+      const height = 40, width = height * passive.naturalWidth / passive.naturalHeight;
+      ctx.save(); ctx.globalAlpha = 0.2;
+      ctx.drawImage(passive, b.x - width / 2, iconY - height / 2, width, height);
+      ctx.restore();
+      const filled = Math.max(0, Math.min(3, b.bookStack)) / 3;
+      if (filled > 0) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(b.x - width / 2, iconY + height / 2 - height * filled, width, height * filled);
+        ctx.clip();
+        ctx.drawImage(passive, b.x - width / 2, iconY - height / 2, width, height);
+        ctx.restore();
+      }
+    }
+    if (b.readCharge > 0) {
+      const progress = 1 - b.readCharge / 1.5;
+      ctx.strokeStyle = '#b06cff'; ctx.shadowColor = '#9b4dff'; ctx.shadowBlur = 25; ctx.lineWidth = 6;
+      ctx.beginPath(); ctx.arc(b.x, b.y, b.radius + 12, 0, Math.PI * 2 * progress); ctx.stroke();
+      for (let i = 0; i < 10; i++) {
+        const a = i * Math.PI / 5 + elapsed * 3, r = b.radius + 60 * (1 - ((elapsed * 2 + i / 10) % 1));
+        ctx.fillStyle = '#bd8cff'; ctx.beginPath(); ctx.arc(b.x + Math.cos(a) * r, b.y + Math.sin(a) * r, 3, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+  }
+  ctx.restore();
+}
+
+CHARACTERS.push({
+  name: '양시온', hp: 210, speed: '보통', size: '작음', color: '#e7b66c', image: 'images/balls/양시온.jpg', ability: '운동',
+  skills: [{ name: '운동', cooldown: 0, desc: '적과 접촉하면 기본 6 피해에 철봉으로 쌓은 보너스를 더해 공격한다. 실제 피해를 줄 때마다 공격력이 무작위 1~2 감소하며 최소 6을 유지한다. 총 공격력 10 이상이면 파란 각성·강한 넉백·이동속도 370, 20 이상이면 황금·보라 각성 사진·아우라·빠름 속도·받는 피해 1 감소가 적용된다. 철봉 중 및 실패·중단 후 0.6초간 공격하지 못한다.' },
+    { name: '철봉', cooldown: 7, desc: '경기 시작과 동시에 최대 3회 철봉을 한다. 이후 1·3단계는 7초, 2단계는 8초마다 제자리에 멈춰 최대 5회 시도한다. 1초마다 시도하며 첫 1회는 반드시 성공하고 이후 77.5% 확률로 성공하여 접촉 피해가 영구적으로 2 증가한다. 적과 접촉하거나 실패하면 중단하고 현재 단계에 따라 쿨타임 7초 또는 8초가 시작된다.' }],
+  trait: { name: '안전사고', desc: '공격력 10 미만은 1단계, 10 이상 20 미만은 2단계, 20 이상은 3단계다. 철봉 중 적 본체와 부딪히면 공격력을 잃지 않고 철봉만 중단하며 눈물 사진이 0.6초간 표시된다. 접촉 없이 공격 피해만 받는 경우에는 철봉이 중단되지 않는다. 기본 피해는 6이다.' },
+  init(self) { self.exerciseBonus = 0; self.barActive = true; self.barLimit = 3; self.barTimer = 0; self.barReps = 0; self.barContactAt = -1; self.pullupCry = 0; },
+  modifyIncoming(self, damage) {
+    const attack = 6 + self.exerciseBonus;
+    return Math.max(0, damage - (attack >= 20 ? 1 : 0));
+  },
+  update(self, other, dt) {
+    if (self.hp <= 0 || self.reviving > 0) return;
+    if (!self.barActive) {
+      if (self.cd[1] <= 0) { self.barActive = true; self.barLimit = 5; self.barTimer = 0; self.barReps = 0; self.barContactAt = -1; }
+      return;
+    }
+    if (other.reviving <= 0 && Math.hypot(other.x - self.x, other.y - self.y) <= self.radius + other.radius) {
+      if (!(isUntouchable(other))) { interruptPullupContact(self); return; }
+    }
+    self.barTimer += dt;
+    while (self.barActive && self.barTimer >= 1 - 1e-9) {
+      self.barTimer = Math.max(0, self.barTimer - 1); self.barReps++;
+      if (self.barReps === 1 || Math.random() < 0.775) {
+        self.exerciseBonus += 2;
+        self.pullupJump = 0.3;
+        texts.push({ x: self.x, y: self.y - self.radius - 15, text: '공격 +2', color: self.def.color, life: 0.8 });
+        if (self.barReps >= self.barLimit) stopPullups(self);
+      } else stopPullups(self, true);
+    }
+  },
+  onContact(self, other, n) {
+    if (self.barActive) { interruptPullupContact(self); return; }
+    if (self.pullupRecovery > 0 || self.pullupCry > 0) return;
+    const attack=6+self.exerciseBonus;
+    const dealt=dealDamage(self, other, attack, { contact: n, source: 'exercise', sound: 'tackle', color: self.def.color });
+    if (attack >= 10) knockback(other, n);
+    if(dealt>0)self.exerciseBonus=Math.max(0,self.exerciseBonus-(1+Math.floor(Math.random()*2)));
+  },
+  onDamaged(self, attacker, damage, info) {
+    if (attacker === self || !self.barActive) return;
+    if (info.contact && !info.projectile && Math.hypot(attacker.x - self.x, attacker.y - self.y) <= attacker.radius + self.radius + 1) interruptPullupContact(self);
+  },
+});
+function stopPullups(self, interrupted = false) {
+  self.barActive = false; self.barTimer = 0; const attack=6+self.exerciseBonus; self.cd[1] = attack>=10&&attack<20?8:7;
+  if (interrupted) self.pullupRecovery = 0.6;
+}
+function interruptPullupContact(self) {
+  self.pullupCry = 0.6;
+  self.barContactAt = elapsed;
+  stopPullups(self, true);
+}
+function drawExercise(b) {
+  if (b.def.name !== '양시온' || b.hp <= 0) return;
+  ctx.save(); ctx.font = `bold ${px(14)} sans-serif`; ctx.textAlign = 'center'; ctx.fillStyle = b.def.color;
+  if (b.barActive) {
+    ctx.fillText(`철봉 ${b.barReps}/${b.barLimit}`, Math.max(55, Math.min(SIZE - 55, b.x)), Math.max(20, b.y - b.radius - 55));
+  }
+  if (6 + b.exerciseBonus >= 20) {
+    const pulse = Math.sin(elapsed * 7) * 3;
+    ctx.shadowBlur = 24; ctx.lineWidth = 4;
+    for (const [offset, color] of [[10, '#ffd65c'], [17, '#b06cff']]) {
+      ctx.strokeStyle = color; ctx.shadowColor = color;
+      ctx.beginPath(); ctx.arc(b.x, b.y, b.radius + offset + pulse, 0, Math.PI * 2); ctx.stroke();
+    }
+    for (let i = 0; i < 10; i++) {
+      const a = i * Math.PI / 5 + elapsed * 1.8;
+      const r = b.radius + 13 + Math.sin(elapsed * 4 + i) * 7;
+      ctx.fillStyle = i % 2 ? '#ffd65c' : '#bb8aff';
+      ctx.beginPath(); ctx.arc(b.x + Math.cos(a) * r, b.y + Math.sin(a) * r, 2.5, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+function drawPullupEquipment(b) {
+  if (b.def.name !== '양시온' || !b.barActive || b.hp <= 0) return;
+  const img = loadImage('images/balls/양시온철봉기구투명.png');
+  if (!img.complete || !img.naturalWidth) return;
+  const height = 150, width = height * img.naturalWidth / img.naturalHeight;
+  // 사진의 팔 끝(높이 약 33.8%)을 공의 양쪽 어깨 안쪽에 겹쳐 연결한다.
+  const top = b.y - b.radius * 0.65 - height * 0.338;
+  const jump = b.pullupJump > 0 ? Math.sin((1 - b.pullupJump / 0.3) * Math.PI) * 10 : 0;
+  ctx.save();
+  ctx.drawImage(img, b.x - width / 2, top, width, height);
+  ctx.strokeStyle = '#bb8c70'; ctx.lineWidth = 9; ctx.lineCap = 'round';
+  for (const side of [-1, 1]) {
+    ctx.beginPath();
+    ctx.moveTo(b.x + side * width * 0.13, top + height * 0.33);
+    ctx.lineTo(b.x + side * b.radius * 0.55, b.y - b.radius * 0.4 - jump);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+let conures=[],campaignWaves=[],electionState=null,electionResult=null,electionFrozenFrame=false;
+function presidentBallotPosition(){
+  const candidates=[];
+  const clearance=p=>Math.min(...balls.map(b=>Math.hypot(p.x-b.x,p.y-b.y)-b.radius-24));
+  for(let i=0;i<256;i++){
+    const p={x:60+Math.random()*(SIZE-120),y:60+Math.random()*(SIZE-120)};
+    if(clearance(p)>=150)candidates.push(p);
+  }
+  if(candidates.length)return candidates[Math.floor(Math.random()*candidates.length)];
+  let best={x:60,y:60};
+  for(let x=60;x<=SIZE-60;x+=20)for(let y=60;y<=SIZE-60;y+=20){const p={x,y};if(clearance(p)>clearance(best))best=p;}
+  return best;
+}
+function startElection(owner){
+  if(electionState)return;
+  const special=enemyOf(owner).def.name==='박건';
+  electionState={owner,special,ballot:special?presidentBallotPosition():null,phase:'intro',remaining:special?1.5:1.35};owner.campaignTime=special?Infinity:11.35;
+  if(special){electionState.originalRadii=balls.map(b=>[b,b.radius]);for(const b of balls)b.radius*=.75;}
+}
+function finishPresidentElection(winner){
+  const owner=electionState.owner,loser=enemyOf(winner);
+  for(const [b,radius] of electionState.originalRadii||[])b.radius=radius;
+  electionState=null;owner.campaignTime=0;owner.campaignCd=40;
+  winner.presidentBuff=20;
+  winner.presidentSkillBuff=winner.presidentBuff;
+  if(winner.def.name==='정찬영'){winner.birdArmor=0;winner.birdDamageBonus=0;}
+  dealDamage(winner,loser,10,{source:'electionVictory',sound:'tackle',color:'#65efad'});
+  if(loser.hp>0&&loser.reviving<=0){loser.stun=Math.max(loser.stun,1);loser.stunKnockback={...directionTo(winner,loser),boost:3};loser.boost=0;}
+  electionResult={owner,winner,special:true,remaining:1.5,total:1.5};
+}
+function finishElection(won){
+  const owner=electionState.owner;
+  owner.campaignTime=0;owner.campaignCd=40;
+  electionState=null;
+  if(won){owner.birdDamageBonus=1;owner.birdArmor=20;}
+  if(won){
+    const enemy=enemyOf(owner);
+    if(enemy.hp>0&&enemy.reviving<=0){dealDamage(owner,enemy,10,{source:'electionVictory',sound:'tackle',color:'#65efad'});if(enemy.hp>0&&enemy.reviving<=0){enemy.stun=Math.max(enemy.stun,1);enemy.stunKnockback={...directionTo(owner,enemy),boost:3};enemy.boost=0;}}
+  }else{
+    loseHp(owner,10);
+    if(owner.hp>0){owner.stun=Math.max(owner.stun,1);owner.stunKnockback={...directionTo(enemyOf(owner),owner),boost:3};owner.boost=0;}
+  }
+  electionResult={owner,won,remaining:1.35,total:1.35};
+}
+function updateElection(dt){
+  const event=electionState;if(!event)return;
+  const owner=event.owner;
+  if(owner.hp<=0){for(const [b,radius] of event.originalRadii||[])b.radius=radius;electionState=null;owner.campaignTime=0;return;}
+  if(event.phase==='celebrate'){
+    event.remaining=Math.max(0,event.remaining-dt);
+    if(event.remaining<=1e-9)finishPresidentElection(event.winner);
+    return;
+  }
+  if(event.phase==='intro'){
+    event.remaining=Math.max(0,event.remaining-dt);
+    if(event.remaining<=1e-9){event.phase='election';event.remaining=event.special?Infinity:10;owner.campaignTime=event.remaining;}
+    return;
+  }
+  const active=Math.min(dt,event.remaining);
+  event.voteAge=(event.voteAge||0)+active;
+  if(!event.special){owner.birdArmor=Math.max(0,owner.birdArmor-active);if(owner.birdArmor<=0)owner.birdDamageBonus=0;}
+
+  owner.campaignTime=Math.max(0,event.remaining-active);
+  let contact=false,firstCandidate=null,firstArrival=Infinity;
+  for(const b of balls){
+    if((b===owner&&!event.special)||b.hp<=0||b.reviving>0)continue;
+    const x=b.x,y=b.y,angle=Math.atan2(b.vy,b.vx);
+    const electionSpeed=b.speed*(event.special?.85:1);
+    b.vx=Math.cos(angle)*electionSpeed;b.vy=Math.sin(angle)*electionSpeed;
+    b.x+=b.vx*active;b.y+=b.vy*active;
+    if(b.x<b.radius){b.x=b.radius;b.vx=Math.abs(b.vx);}else if(b.x>SIZE-b.radius){b.x=SIZE-b.radius;b.vx=-Math.abs(b.vx);}
+    if(b.y<b.radius){b.y=b.radius;b.vy=Math.abs(b.vy);}else if(b.y>SIZE-b.radius){b.y=SIZE-b.radius;b.vy=-Math.abs(b.vy);}
+    if(event.special){
+      const box=event.ballot;
+      if(artDistance(box,x,y,b.x,b.y)<=b.radius+24){
+        const dx=b.x-x,dy=b.y-y,ox=x-box.x,oy=y-box.y,rr=b.radius+24,A=dx*dx+dy*dy,B=2*(ox*dx+oy*dy),C=ox*ox+oy*oy-rr*rr;
+        const arrival=C<=0?0:A>0?Math.max(0,Math.min(1,(-B-Math.sqrt(Math.max(0,B*B-4*A*C)))/(2*A))):0;
+        if(arrival<firstArrival||(arrival===firstArrival&&Math.random()<.5)){firstArrival=arrival;firstCandidate=b;}
+      }
+    }else if(artDistance(owner,x,y,b.x,b.y)<=owner.radius+b.radius)contact=true;
+  }
+  if(event.special){
+    for(let i=0;i<balls.length;i++)for(let j=i+1;j<balls.length;j++){
+      const a=balls[i],b=balls[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),limit=a.radius+b.radius;
+      if(d>=limit)continue;
+      const nx=d>1e-9?dx/d:1,ny=d>1e-9?dy/d:0,overlap=(limit-d)/2;
+      a.x-=nx*overlap;a.y-=ny*overlap;b.x+=nx*overlap;b.y+=ny*overlap;
+      const an=a.vx*nx+a.vy*ny,bn=b.vx*nx+b.vy*ny;
+      if(an>0){a.vx-=2*an*nx;a.vy-=2*an*ny;}
+      if(bn<0){b.vx-=2*bn*nx;b.vy-=2*bn*ny;}
+      for(const body of [a,b]){body.x=Math.max(body.radius,Math.min(SIZE-body.radius,body.x));body.y=Math.max(body.radius,Math.min(SIZE-body.radius,body.y));}
+    }
+  }
+  if(firstCandidate){event.phase='celebrate';event.winner=firstCandidate;event.remaining=2;return;}
+  if(contact){finishElection(true);return;}
+
+  if(balls.some(b=>b.hp<=0&&b.reviving<=0)){electionState=null;owner.campaignTime=0;finishBattleIfNeeded();return;}
+  event.remaining=Math.max(0,event.remaining-active);
+  if(event.remaining<=0)finishElection(false);
+}
+function drawSchoolElectionNotice(title,remaining,total,subtitle='',accent='#fffce8',winnerPortrait=null){
+  const age=total-remaining,fade=Math.max(0,Math.min(1,age/.15,remaining/.2)),cx=SIZE/2,cy=SIZE*(winnerPortrait?.72:.5);
+  const image=loadImage('images/balls/정찬영 출마.jpg'),width=SIZE*.84,height=SIZE*(winnerPortrait?.44:.88),size=SIZE*.55;
+  ctx.save();ctx.globalAlpha=fade;ctx.translate(cx,cy);const scale=.94+.06*Math.min(1,age/.15);ctx.scale(scale,scale);
+  ctx.fillStyle='rgba(17,53,42,.95)';ctx.fillRect(-width/2,-height/2,width,height);
+  ctx.strokeStyle='#c5a77c';ctx.lineWidth=8;ctx.strokeRect(-width/2,-height/2,width,height);
+  ctx.strokeStyle='rgba(255,255,231,.45)';ctx.lineWidth=1;ctx.strokeRect(-width/2+12,-height/2+12,width-24,height-24);
+  ctx.textAlign='center';ctx.shadowBlur=0;ctx.fillStyle='#fff6d8';ctx.font='bold '+Math.round(SIZE*.035)+'px "Malgun Gothic", sans-serif';
+  ctx.fillText('학생회 선거 · 알림',0,-height/2+SIZE*.065);
+  if(image.complete&&image.naturalWidth){ctx.save();if(winnerPortrait)ctx.globalAlpha*=.15;const logoSize=winnerPortrait?height*.65:size;ctx.drawImage(image,-logoSize/2,-logoSize/2-(winnerPortrait?0:SIZE*.025),logoSize,logoSize);ctx.restore();}
+  ctx.fillStyle=accent;ctx.font='bold '+Math.round(SIZE*.067)+'px "Malgun Gothic", sans-serif';
+  ctx.fillText(title,0,height/2-SIZE*.075);
+  ctx.strokeStyle=accent;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-width*.32,height/2-SIZE*.05);ctx.lineTo(width*.32,height/2-SIZE*.05);ctx.stroke();
+  if(subtitle){
+    const resultSubtitle=subtitle==='옳게된 결과!'||subtitle==='뒤바뀐 결과!'||subtitle.includes('이스터에그');
+    ctx.font='bold '+Math.round(SIZE*(resultSubtitle?.052:.028))+'px "Malgun Gothic", sans-serif';
+    ctx.fillText(subtitle,0,winnerPortrait?-height/2+SIZE*.15:resultSubtitle?-size/2-SIZE*.05:height/2-SIZE*.014);
+  }
+  if(winnerPortrait){
+    const portrait=loadImage(winnerPortrait);
+    if(portrait.complete&&portrait.naturalWidth){
+      const portraitSize=size*.85,scale=Math.min(portraitSize/portrait.naturalWidth,portraitSize/portrait.naturalHeight),w=portrait.naturalWidth*scale,h=portrait.naturalHeight*scale;
+      ctx.drawImage(portrait,-w/2,-height/2-h+SIZE*.03,w,h);
+    }
+  }
+  ctx.restore();
+}
+function drawElection(){
+  const event=electionState;
+  if(event?.special||electionResult?.special){
+    if(event?.phase==='intro')drawSchoolElectionNotice('전교회장 선거!',event.remaining,1.5,'이스터에그 발동!');
+    else if(event){ctx.save();ctx.textAlign='center';ctx.fillStyle='#fff6d8';ctx.font='bold 30px "Malgun Gothic", sans-serif';ctx.strokeStyle='#17352a';ctx.lineWidth=5;ctx.strokeText('전교회장 선거!',SIZE/2,55);ctx.fillText('전교회장 선거!',SIZE/2,55);ctx.restore();}
+    if(electionResult?.special){const park=electionResult.winner.def.name==='박건';drawSchoolElectionNotice(park?'기호1번 당선!':'기호2번 당선!',electionResult.remaining,1.5,park?'옳게된 결과!':'뒤바뀐 결과!',park?'#4b9dff':'#59ee8c',park?'images/balls/박건당선-배경제거.png':'images/balls/정찬영당선-배경제거.png');}
+    return;
+  }
+  if(event){
+    ctx.save();ctx.fillStyle='rgba(40,60,110,.13)';ctx.fillRect(0,0,SIZE,SIZE);
+    ctx.textAlign='center';ctx.fillStyle='#d7fff7';ctx.shadowColor='#50dfca';ctx.shadowBlur=20;
+    if(event.phase==='intro'){
+      drawSchoolElectionNotice('정찬영 출마!',event.remaining,1.35);
+    }
+    else{
+      ctx.shadowBlur=0;
+      const cx=SIZE/2,cy=SIZE/2+18,r=76,progress=Math.max(0,Math.min(1,1-event.remaining/10)),start=-Math.PI/2,angle=start+progress*Math.PI*2;
+      ctx.fillStyle='rgba(17,53,42,.62)';ctx.fillRect(cx-140,cy-145,280,250);
+      ctx.strokeStyle='#c5a77c';ctx.lineWidth=5;ctx.strokeRect(cx-140,cy-145,280,250);
+      ctx.fillStyle='#fff6d8';ctx.font='bold 24px "Malgun Gothic", sans-serif';ctx.fillText('학생회 투표 시간',cx,cy-108);
+      // 남은 시간은 옅게, 지나간 시간은 시계 방향으로 선명하게 채운다.
+      ctx.fillStyle='rgba(255,252,232,.07)';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();
+      if(progress>0){ctx.fillStyle='rgba(255,232,156,.42)';ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,angle);ctx.closePath();ctx.fill();}
+      ctx.strokeStyle='#fff6d8';ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();
+      for(let i=0;i<12;i++){const a=start+i*Math.PI/6;ctx.lineWidth=i%3===0?3:1.5;ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*(r-10),cy+Math.sin(a)*(r-10));ctx.lineTo(cx+Math.cos(a)*(r-3),cy+Math.sin(a)*(r-3));ctx.stroke();}
+      ctx.lineWidth=4;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(angle)*(r-15),cy+Math.sin(angle)*(r-15));ctx.stroke();
+      ctx.fillStyle='#fff6d8';ctx.beginPath();ctx.arc(cx,cy,5,0,Math.PI*2);ctx.fill();
+    }
+    ctx.restore();
+  }
+  if(electionResult){
+    drawSchoolElectionNotice(electionResult.won?'정찬영 당선!':'정찬영 당선 실패',electionResult.remaining,electionResult.total,'','#fffce8',electionResult.won?'images/balls/정찬영당선-배경제거.png':null);
+  }
+}
+CHARACTERS.push({
+ name:'정찬영',hp:205,speed:'보통',size:'보통',color:'#f2eee5',image:'images/balls/정찬영-profile.jpg',ability:'조류박사',
+ skills:[{name:'짹짹이',cooldown:4,desc:'우측 하단에서 대기 후 코뉴어를 발사한다. 발사부터 총 8초간 활동하며 처음 0.6초는 460px/초 직진(벽 반사), 이후 260px/초로 적을 추적한다. 붙은 순간부터 매초 3~5의 무작위 피해를 주며 발사 후 8초가 되면 520px/초로 귀환한다. 귀환 후에는 3초 대기하며, 추적 방향 전환 속도는 초당 225도이다.'}],
+ trait:{name:'출마',desc:'첫 출마 30초, 이후 결과 표시 종료부터 30초+추가 대기 10초. 1.35초간 전체 정지 후 10초간 선거 세계에 진입한다. 정찬영과 코뉴어의 이동·공격·활동시간 및 출마 쿨타임은 정지하며 상대는 기본 이동만 가능하고 모두 무적이다. 상대의 공격·쿨타임·버프 효과와 타이머·기존 투사체는 정지한다. 상대가 접촉하면 당선, 아니면 시간 만료로 실패한다. 당선 시 적에게 피해 10과 강한 넉백. 20초간 공격력 +1·받는 피해 2 감소(원래 피해 2 이하는 절반). 실패 시 정찬영이 피해 10과 강한 넉백을 받는다. 결과 이미지는 1초 표시하며 전체 정지.'},
+ init(self){self.cd[0]=4;self.campaignCd=30;self.campaignTime=0;self.birdArmor=0;self.birdDamageBonus=0;self.birdTrail=[];conures.push({owner:self,x:self.x+self.radius*.8,y:self.y+self.radius*.8,state:'air',timer:4,angle:-Math.PI/2,r:24});},
+ modifyIncoming(self,damage,info){if(self.campaignTime>0&&info.contact&&!info.projectile)return 0;if(self.birdArmor>0)return damage<=2?damage/2:damage-2;return damage;},
+ onContact(self,other,n){
+   if(self.birdArmor<=0||electionState||electionResult)return;
+   dealDamage(self,other,3,{source:'electionContact',contact:true,sound:'tackle',color:'#65efad'});
+   if(other.hp>0&&other.reviving<=0)knockback(other,{...n,boost:3},3);
+ },
+ update(self,other,dt){
+   self.birdArmor=Math.max(0,self.birdArmor-dt);if(self.birdArmor<=0)self.birdDamageBonus=0;self.campaignTime=Math.max(0,self.campaignTime-dt);
+   self.birdTrail.push({x:self.x,y:self.y,time:elapsed});self.birdTrail=self.birdTrail.filter(p=>elapsed-p.time<1);
+   self.campaignCd=Math.max(0,self.campaignCd-dt);
+   if(self.campaignCd<=0&&!electionState){self.campaignCd=30;startElection(self);}
+ }
+});
+function updateMusicWaves(dt,onlyOwner=null){
+ for(const w of campaignWaves){const previous=w.radius;w.radius=Math.min(260,w.radius+520*dt);for(const b of balls){if(b.side===w.owner.side||b.hp<=0||b.reviving>0||isUntouchable(b)||w.hit.has(b))continue;const d=Math.hypot(b.x-w.x,b.y-w.y);if(d-b.radius<=w.radius&&d+b.radius>=previous){w.hit.add(b);b.campaignPull={owner:w.owner,remaining:3};}}}
+ campaignWaves=campaignWaves.filter(w=>w.radius<260);
+ for(const bird of conures){
+   if(onlyOwner&&bird.owner!==onlyOwner)continue;
+   if(bird.owner.hp<=0)continue;const target=enemyOf(bird.owner);
+   const active=['straight','chase','attached'].includes(bird.state)?Math.min(dt,bird.life):dt;
+   if(bird.state==='air'){bird.x=bird.owner.x+bird.owner.radius*.8;bird.y=bird.owner.y+bird.owner.radius*.8;bird.angle=-Math.PI/2;bird.timer-=dt;if(bird.timer<=0){bird.state='straight';bird.timer=.6;bird.life=8;bird.target=target;const n=directionTo(bird,target);bird.vx=n.x*460;bird.vy=n.y*460;bird.angle=Math.atan2(n.y,n.x);}}
+   else if(bird.state==='straight'||bird.state==='chase'){
+     const previousX=bird.x,previousY=bird.y;let chaseDt=active;
+     if(bird.state==='straight'){
+       const flightDt=Math.min(active,bird.timer);bird.x+=bird.vx*flightDt;bird.y+=bird.vy*flightDt;bird.timer=Math.max(0,bird.timer-flightDt);chaseDt=active-flightDt;
+       if(bird.x<bird.r){bird.x=bird.r;bird.vx=Math.abs(bird.vx);}else if(bird.x>SIZE-bird.r){bird.x=SIZE-bird.r;bird.vx=-Math.abs(bird.vx);}
+       if(bird.y<bird.r){bird.y=bird.r;bird.vy=Math.abs(bird.vy);}else if(bird.y>SIZE-bird.r){bird.y=SIZE-bird.r;bird.vy=-Math.abs(bird.vy);}
+       bird.angle=Math.atan2(bird.vy,bird.vx);
+       if(bird.timer<=0)bird.state='chase';
+     }
+     if(bird.state==='chase'&&chaseDt>0&&target.hp>0&&target.reviving<=0&&!(target.dodgeTime>0)){
+       const desired=Math.atan2(target.y-bird.y,target.x-bird.x),turn=Math.atan2(Math.sin(desired-bird.angle),Math.cos(desired-bird.angle)),maxTurn=Math.PI*1.25*chaseDt;bird.angle+=Math.max(-maxTurn,Math.min(maxTurn,turn));const step=Math.min(260*chaseDt,Math.hypot(target.x-bird.x,target.y-bird.y));bird.x+=Math.cos(bird.angle)*step;bird.y+=Math.sin(bird.angle)*step;
+     }
+     bird.x=Math.max(bird.r,Math.min(SIZE-bird.r,bird.x));bird.y=Math.max(bird.r,Math.min(SIZE-bird.r,bird.y));
+     if(target.hp>0&&target.reviving<=0&&!(target.dodgeTime>0)&&!target.tripAir&&artDistance(target,previousX,previousY,bird.x,bird.y)<=bird.r+target.radius){bird.state='attached';bird.tick=0;bird.target=target;}
+     bird.life=Math.max(0,bird.life-active);if(bird.life<=0){bird.state='return';bird.target=null;}
+   }else if(bird.state==='return'){
+     const home={x:bird.owner.x+bird.owner.radius*.8,y:bird.owner.y+bird.owner.radius*.8},n=directionTo(bird,home),distance=Math.hypot(home.x-bird.x,home.y-bird.y),step=Math.min(distance,SPEED['매우 빠름']*dt);
+     bird.x+=n.x*step;bird.y+=n.y*step;bird.angle=Math.atan2(n.y,n.x);
+     if(distance<=step+1){bird.x=home.x;bird.y=home.y;bird.state='air';bird.timer=3;bird.owner.cd[0]=3;}
+   }else{
+     bird.life=Math.max(0,bird.life-active);bird.tick+=active;bird.x=bird.target.x;bird.y=bird.target.y;
+     while(bird.tick>=1-1e-9){bird.tick=Math.max(0,bird.tick-1);if(bird.target.hp>0&&dealDamage(bird.owner,bird.target,3+Math.floor(Math.random()*3)+(bird.owner.birdDamageBonus||0),{source:'conure',projectile:true,sound:'hit'})>0)bird.target.conureFlash=.25;}
+     if(bird.life<=0||bird.target.hp<=0){bird.state='return';bird.target=null;}
+   }
+ }
+ conures=conures.filter(b=>b.owner.hp>0);
+}
+function drawMusicWaves(){
+ ctx.save();for(const w of campaignWaves){ctx.strokeStyle='#50dfca';ctx.globalAlpha=1-w.radius/300;ctx.lineWidth=4;ctx.beginPath();ctx.arc(w.x,w.y,w.radius,0,Math.PI*2);ctx.stroke();}ctx.restore();
+}
+function drawConures(){
+ for(const bird of conures){
+   const resting=bird.state==='air'||bird.state==='attached',img=loadImage(bird.state==='attached'?'images/balls/화난코뉴어-붉은안광.png':resting?'images/balls/정찬영코뉴어얼굴.png':'images/balls/정찬영코뉴어.png');
+   ctx.save();const x=bird.state==='attached'?bird.target.x+bird.target.radius*.8:bird.x,y=bird.state==='attached'?bird.target.y-bird.target.radius*.8:bird.y;
+   if(bird.state==='chase'||bird.state==='straight'){ctx.strokeStyle='#85df68';ctx.lineWidth=2;ctx.beginPath();ctx.arc(bird.x,bird.y,bird.r,0,Math.PI*2);ctx.stroke();}
+   ctx.translate(x,y);if(!resting)ctx.rotate(bird.angle+Math.PI/2);
+   if(bird.owner.presidentSkillBuff>0){ctx.shadowColor='#51ff83';ctx.shadowBlur=24;ctx.strokeStyle='#51ff83';ctx.lineWidth=2;ctx.globalAlpha=.65;ctx.beginPath();ctx.arc(0,0,resting?30:36,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;}
+   const size=bird.state==='attached'?50:resting?58:70;if(img.complete&&img.naturalWidth)ctx.drawImage(img,-size/2,-size/2,size,size);else{ctx.fillStyle='#59bd69';ctx.beginPath();ctx.arc(0,0,15,0,Math.PI*2);ctx.fill();}ctx.restore();
+ }
+}
+function drawPerformer(b){
+ if(b.def.name!=='정찬영'||b.hp<=0)return;
+ for(const [active,color,offset] of [[b.campaignTime>0,'#51ff70',7],[b.birdArmor>0,'#ffcf58',13]]){if(!active)continue;ctx.save();ctx.strokeStyle=color;ctx.shadowColor=color;ctx.shadowBlur=24;ctx.lineWidth=4;ctx.globalAlpha=.65+.2*Math.sin(elapsed*6);ctx.beginPath();ctx.arc(b.x,b.y,b.radius+offset,0,Math.PI*2);ctx.stroke();ctx.restore();}
+}
+function drawElectionBuffTimers(){
+  for(const b of balls){
+    const remaining=Math.max(b.presidentBuff||0,b.birdArmor||0);
+    if(remaining<=0||b.hp<=0)continue;
+    const width=b.radius*1.6,height=7,x=b.x-width/2,y=b.y+b.radius+12;
+    ctx.save();ctx.fillStyle='rgba(10,24,30,.8)';ctx.fillRect(x-2,y-2,width+4,height+4);
+    ctx.fillStyle='rgba(255,255,255,.16)';ctx.fillRect(x,y,width,height);
+    ctx.fillStyle=b.def.name==='박건'?'#79b8ff':'#83ffad';ctx.fillRect(x,y,width*Math.min(1,remaining/20),height);ctx.restore();
+  }
+}
+
 function isCheek(ball, n) {
   const limit = Math.sin((ball.def.cheekAngle * Math.PI) / 180);
   return Math.abs(n.y) < limit;
@@ -609,21 +2010,510 @@ function isCheek(ball, n) {
 
 // ---------- 게임 상태 ----------
 
+function travelRadius(distance){return 65+10*Math.min(4,Math.floor(Math.max(0,distance)/47.5));}
+function travelDamage(){return 19;}
+function travelFlightTime(distance){return distance>=420?.5:Math.max(.05,distance/1200);}
+function nextTravel(self){self.travelCooldown=4+Math.floor(Math.random()*2);self.cd[0]=self.travelCooldown;}
+CHARACTERS.push({
+  name:'이상권',hp:190,speed:'보통',size:'작음',color:'#56a7d7',image:'images/balls/이상권-profile.jpg',ability:'여행',
+  skills:[{name:'여행',cooldown:4,desc:'유학생 종료 후 4~5초 중 무작위 대기. 적 위치에 거리 47.5px마다 반지름 65·75·85·95·105px의 5단계 착지 범위를 표시하고 0.2초 준비 후 가까운 거리는 거리에 비례해 최대 0.35초, 420px 이상은 0.5초간 날아간다. 착지 적중 시 0.5초 진동·기절. 체공 중 피격 무효. 착지 피해는 거리에 관계없이 19이다.'}],
+  trait:{name:'유학생',desc:'시작 1초 후 정지, 0.3초 후 이륙한다. 이륙 후 4초간 지정 불가·접촉 무효지만 기존 화상·독은 받는다. 그림자가 초당 120px 속도로 적을 추적하고 3.5초에 반지름 200px, 3.75초에 정지한다. 4초에 귀환해 피해 16과 2초 기절 후 강한 넉백. 이후 1초간 벽 충돌마다 2 피해. 경기당 1회.'},
+  init(self){self.studyWait=1;self.studyDone=false;self.trip=null;self.tripAir=false;self.cd[0]=4;},
+  update(self,other,dt){
+    if(self.hp<=0||self.reviving>0)return;
+    if(!self.studyDone&&!self.trip){self.studyWait=Math.max(0,self.studyWait-dt);if(self.studyWait<=0)self.trip={kind:'study',phase:'prepare',age:0};return;}
+    const t=self.trip;
+    if(!t){if(self.cd[0]<=0)self.trip={kind:'travel',phase:'prepare',age:0,damage:travelDamage(Math.hypot(other.x-self.x,other.y-self.y)),radius:travelRadius(Math.hypot(other.x-self.x,other.y-self.y)),flight:travelFlightTime(Math.hypot(other.x-self.x,other.y-self.y)),startX:self.x,startY:self.y,targetX:other.x,targetY:other.y};return;}
+    t.age+=dt;
+    if(t.phase==='prepare'){
+      if(t.age>=(t.kind==='travel'?.2:.3)){t.phase='flight';t.age=0;self.tripAir=true;sound.play('quakeJump');}
+      return;
+    }
+    if(t.kind==='study'){
+      if(t.age<3.75){const n=directionTo(self,other),distance=Math.hypot(other.x-self.x,other.y-self.y),travel=Math.min(distance,120*Math.min(dt,3.75-(t.age-dt)));self.x=Math.max(self.radius,Math.min(SIZE-self.radius,self.x+n.x*travel));self.y=Math.max(self.radius,Math.min(SIZE-self.radius,self.y+n.y*travel));}
+      if(t.age<4)return;
+      self.tripAir=false;self.studyDone=true;travelImpact(self,200,16,true);self.trip=null;nextTravel(self);
+    }else{
+      const ratio=Math.min(1,t.age/t.flight);self.x=t.startX+(t.targetX-t.startX)*ratio;self.y=t.startY+(t.targetY-t.startY)*ratio;
+      self.x=Math.max(self.radius,Math.min(SIZE-self.radius,self.x));self.y=Math.max(self.radius,Math.min(SIZE-self.radius,self.y));
+      if(t.age<t.flight)return;
+      self.tripAir=false;travelImpact(self,t.radius,t.damage,false);self.trip=null;nextTravel(self);
+    }
+  },
+  drawUnder(self){
+    const t=self.trip;if(!t)return;
+    const radius=t.kind==='study'?(t.phase==='flight'?self.radius+(200-self.radius)*Math.min(1,t.age/3.5):self.radius):t.radius;
+    const x=t.kind==='travel'?t.targetX:self.x,y=t.kind==='travel'?t.targetY:self.y;
+    const marker=loadImage('images/balls/비행기착륙지점.png');
+    ctx.save();
+    if(marker.complete&&marker.naturalWidth)ctx.drawImage(marker,x-radius,y-radius,radius*2,radius*2);
+    else{ctx.fillStyle='rgba(0,0,0,.3)';ctx.strokeStyle='#8ed7ff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);ctx.fill();ctx.stroke();}
+    ctx.restore();
+  }
+});
+function travelImpact(self,radius,damage,study){
+  studyImpacts.push({x:self.x,y:self.y,radius,age:0});
+  sound.play('quakeLanding');
+  const impact={owner:self};
+  for(const target of balls){
+    if(target.side===self.side||target.hp<=0||target.reviving>0||isUntouchable(target)||Math.hypot(target.x-self.x,target.y-self.y)>radius+target.radius)continue;
+    dealDamage(self,target,damage,{source:'travelLanding',sound:false,color:self.def.color});
+    if(!study&&target.hp>0&&target.reviving<=0&&!isUntouchable(target))target.stun=Math.max(target.stun,.5);
+    if(study&&target.hp>0&&target.reviving<=0&&!isUntouchable(target)){
+      target.stun=Math.max(target.stun,2);target.stunKnockback={...directionTo(self,target),boost:4,quakeOwner:self,quake:impact,wallDuration:1,wallDamage:2};
+    }
+  }
+}
+function drawStudyImpacts(){
+  const img=loadImage('images/balls/원형흙먼지.png');
+  if(!img.complete||!img.naturalWidth)return;
+  for(const e of studyImpacts){
+    const radius=e.radius;
+    ctx.save();ctx.globalAlpha=e.age<=.2?1:Math.max(0,(.3-e.age)/.1);ctx.drawImage(img,e.x-radius,e.y-radius,radius*2,radius*2);ctx.restore();
+  }
+}
+function travelLift(b){
+  const t=b.trip;if(!t||t.phase!=='flight')return 0;
+  if(t.kind==='travel')return Math.sin(Math.min(1,t.age/t.flight)*Math.PI)*160;
+  if(t.age<.3)return t.age/.3*(SIZE+200);
+  if(t.age>=3.75)return (4-t.age)/.25*(SIZE+200);
+  return SIZE+200;
+}
+let soccerBalls=[],soccerFoods=[],soccerDashFade=0;
+const SOCCER_BOUNCES=[0,0,0,0];
+function spawnSoccerFood(owner){
+  if(soccerFoods.length)return;
+  const radius=BALL_SIZE['보통'];
+  let best=null,bestDistance=-1;
+  for(let i=0;i<100;i++){const p={x:radius+Math.random()*(SIZE-radius*2),y:radius+Math.random()*(SIZE-radius*2)},d=Math.hypot(p.x-owner.x,p.y-owner.y);if(d>bestDistance){best=p;bestDistance=d;}if(d>=180){best=p;break;}}
+  const kind=Math.floor(Math.random()*3);
+  soccerFoods.push({...best,owner,kind,r:radius});
+}
+function kickSoccer(owner,target){
+  const energy=Math.min(2,owner.energy),n=directionTo(owner,target),distance=owner.radius+23;
+  const ball={owner,x:owner.x+n.x*distance,y:owner.y+n.y*distance,vx:n.x*480,vy:n.y*480,r:20,damage:18,bounces:0,hits:0,age:0,away:0,touching:false,recoil:false,canDamage:true};
+  ball.x=Math.max(ball.r,Math.min(SIZE-ball.r,ball.x));ball.y=Math.max(ball.r,Math.min(SIZE-ball.r,ball.y));
+  owner.soccerBall=ball;soccerBalls.push(ball);owner.cd[0]=3.75;owner.soccerRecovery=.15;
+}
+CHARACTERS.push({
+  name:'박성찬',hp:195,speed:'보통',size:'보통',color:'#08b5c8',image:'images/balls/박성찬질주.jpg',ability:'축구',
+  skills:[{name:'축구',cooldown:3.75,desc:'처음 3.5~4.5초 대기 후 제자리에서 0.15초간 준비하고 상대 방향으로 공을 찬다. 공의 기본 속도는 480px/초이며 찬 뒤에도 0.15초간 멈춘다. 공 피해는 기력과 관계없이 18이며 찰 때 기력을 소모하지 않는다. 적중하면 피해를 주고 공은 반대 방향으로 튕겨나가며 적은 0.12초간 24px 밀려난다. 적의 이동 속도와 방향은 바꾸지 않는다. 같은 슛으로 다시 피해를 줄 때마다 피해가 5씩 감소한다(최소 0). 공은 회수 전 사라지지 않고 동시에 하나만 존재한다. 정지하거나 굴러가는 공은 피해를 주지 않는다. 벽 반사는 없으며 벽이나 적에게 부딪힌 후 짧게 굴러가다 멈춘다. 공을 발사한 순간부터 3.75초의 재사용 대기가 시작된다. 공을 회수했어도 3.75초가 지나지 않았다면 남은 시간을 기다린다. 3.75초가 지난 뒤 회수하면 추가 대기 없이 0.15초 준비 후 발사한다.'},{name:'질주',cooldown:0,desc:'공을 찬 뒤 1.5초 동안 회수하지 못했고 기력이 남아 있으면 기력 1을 소모하고 유체화한다. 적을 통과하고 받는 피해를 절반으로 줄이며 상태이상은 정상적으로 받는다. 이지원의 다크심리학은 반드시 적중하며 직접 피해는 질주의 피해 감소 없이 원래대로 받는다. 독 피해도 받는다. 매우 빠르게 공을 향해 이동하며 경로의 적에게 질주당 한 번 피해 3과 약한 넉백을 준다. 회수 시 해제한다.'}],
+  trait:{name:'먹방일지',desc:'기력 최대 2, 시작 1. 공을 찬 상태에서 기력이 0인 채 음식을 먹지 못한 시간이 6초가 되면 자신의 체력을 5 소모해 기력 1을 회복한다. 음식을 먹거나 공을 회수하면 자동 회복 대기는 초기화되며, 공을 보유한 동안에는 자동 회복하지 않는다. 음식은 경기장에 하나만 존재하며 첫 음식과 먹은 뒤 다음 음식은 매번 5~7초 사이의 무작위 대기 후 소환된다. 모든 음식은 기력 3과 체력 5를 회복한다. 음식이 남아 있으면 추가 소환하지 않는다. 기력은 질주에만 1 소모하며 공 피해와 벽 반사에는 영향을 주지 않는다.'},
+  init(self){self.energy=1;self.emptyEnergyTime=0;self.soccerBall=null;self.soccerDash=false;self.soccerDashHits=new Set();self.soccerWindup=0;self.soccerRecovery=0;self.foodWait=5+Math.random()*2;self.cd[0]=3.5+Math.random();loadImage('images/balls/푸른질주배경.png');loadImage('images/balls/박성찬축구공.png');loadImage('images/balls/박성찬-profile.jpg');for(const food of ['초밥','햄버거','치킨'])loadImage('images/balls/박성찬'+food+'.png');},
+  update(self,other,dt){
+    self.emptyEnergyTime=self.energy<=0&&self.soccerBall?(self.emptyEnergyTime||0)+dt:0;
+    if(self.emptyEnergyTime>=6-1e-9){self.energy=1;self.emptyEnergyTime=0;loseHp(self,5);if(self.hp<=0)return;}
+    if(!soccerFoods.length){self.foodWait=Math.max(0,self.foodWait-dt);if(self.foodWait<=0)spawnSoccerFood(self);}
+    if(self.soccerRecovery>0){self.soccerRecovery=Math.max(0,self.soccerRecovery-dt);return;}
+    if(self.soccerWindup>0){self.soccerWindup=Math.max(0,self.soccerWindup-dt);if(self.soccerWindup<=1e-9){self.soccerWindup=0;kickSoccer(self,other);}return;}
+    if(!self.soccerBall&&self.cd[0]<=0)self.soccerWindup=.15;
+  }
+});
+function soccerCollision(ball){
+  if(ball.bounces>0){ball.bounces--;ball.recoil=false;ball.wallRoll=false;return;}
+  ball.canDamage=false;ball.recoil=true;ball.wallRoll=true;
+  const speed=Math.hypot(ball.vx,ball.vy);if(speed>260){ball.vx*=260/speed;ball.vy*=260/speed;}
+}
+function updateSoccerBackground(dt){
+  const active=balls.some(b=>b.soccerDash&&b.hp>0);
+  soccerDashFade=Math.max(0,Math.min(1,soccerDashFade+(active?1:-1)*dt/.25));
+}
+function updateSoccer(dt,realDt=dt){
+  for(const ball of soccerBalls){
+    const owner=ball.owner;if(owner.hp<=0)continue;
+    ball.age+=dt;ball.away+=dt;const previousX=ball.x,previousY=ball.y;
+    ball.x+=ball.vx*dt;ball.y+=ball.vy*dt;
+    const wallX=ball.x<ball.r||ball.x>SIZE-ball.r,wallY=ball.y<ball.r||ball.y>SIZE-ball.r;
+    if(wallX||wallY){
+      ball.x=Math.max(ball.r,Math.min(SIZE-ball.r,ball.x));ball.y=Math.max(ball.r,Math.min(SIZE-ball.r,ball.y));
+      if(wallX)ball.vx=ball.x<=ball.r?Math.abs(ball.vx):-Math.abs(ball.vx);
+      if(wallY)ball.vy=ball.y<=ball.r?Math.abs(ball.vy):-Math.abs(ball.vy);
+      soccerCollision(ball);
+    }
+    const target=enemyOf(owner),distance=Math.hypot(target.x-ball.x,target.y-ball.y);
+    const wasTouching=ball.touching;
+    if(distance>target.radius+ball.r+4)ball.touching=false;
+    if(ball.canDamage&&Math.hypot(ball.vx,ball.vy)>1e-6&&!wasTouching&&target.hp>0&&target.reviving<=0&&!isUntouchable(target)&&artDistance(target,previousX,previousY,ball.x,ball.y)<=target.radius+ball.r){
+      ball.touching=true;
+      const dx=ball.x-previousX,dy=ball.y-previousY,ox=previousX-target.x,oy=previousY-target.y,contact=target.radius+ball.r,A=dx*dx+dy*dy,B=2*(ox*dx+oy*dy),C=ox*ox+oy*oy-contact*contact;
+      const impact=A>0&&C>0?Math.max(0,Math.min(1,(-B-Math.sqrt(Math.max(0,B*B-4*A*C)))/(2*A))):0;
+      const speed=Math.hypot(ball.vx,ball.vy),px=previousX+dx*impact-target.x,py=previousY+dy*impact-target.y,d=Math.hypot(px,py);
+      const out=d>1e-6?{x:px/d,y:py/d}:{x:-ball.vx/speed,y:-ball.vy/speed},n={x:-out.x,y:-out.y},damage=Math.max(0,ball.damage-ball.hits*5);
+      ball.x=target.x+out.x*(contact+1);ball.y=target.y+out.y*(contact+1);
+      if(damage>0&&dealDamage(owner,target,damage,{source:'soccer',projectile:true,sound:'tackle',color:owner.def.color})>0)ball.hits++;
+      if(target.hp>0&&target.reviving<=0&&!isUntouchable(target))target.soccerPush={x:n.x,y:n.y,remaining:.12,speed:target.def.name==='김지성'?100:200};
+      ball.vx=out.x*420;ball.vy=out.y*420;soccerCollision(ball);
+    }
+    if(ball.recoil){const speed=Math.hypot(ball.vx,ball.vy),next=Math.max(0,speed-(ball.wallRoll?500:800)*dt);if(speed){ball.vx*=next/speed;ball.vy*=next/speed;}}
+    if(!owner.soccerDash&&ball.away>=1.5&&owner.energy>0){owner.energy--;owner.soccerDash=true;owner.soccerDashHits=new Set();owner.soccerDashKnock=null;}
+    if(owner.soccerDash){
+      const dashSlow=(owner.slow>0||owner.darkBurn||artGround.some(m=>m.kind==='paint'&&artTouches(m,owner)))?.5:1;
+      const fromX=owner.x,fromY=owner.y,d=Math.hypot(ball.x-owner.x,ball.y-owner.y),n=directionTo(owner,ball),step=owner.stun>0?0:Math.min(SPEED['매우 빠름']*dashSlow*realDt,d);
+      if(d>1e-6){owner.vx=n.x*owner.speed;owner.vy=n.y*owner.speed;}
+      owner.x+=n.x*step;owner.y+=n.y*step;owner.x=Math.max(owner.radius,Math.min(SIZE-owner.radius,owner.x));owner.y=Math.max(owner.radius,Math.min(SIZE-owner.radius,owner.y));
+      if(owner.soccerDashKnock){const push=owner.soccerDashKnock,active=Math.min(realDt,push.remaining);owner.x+=push.x*push.speed*active;owner.y+=push.y*push.speed*active;push.remaining-=active;if(push.remaining<=1e-9)owner.soccerDashKnock=null;owner.x=Math.max(owner.radius,Math.min(SIZE-owner.radius,owner.x));owner.y=Math.max(owner.radius,Math.min(SIZE-owner.radius,owner.y));}
+      owner.soccerDashHits ||= new Set();
+      for(const enemy of balls){
+        if(enemy.side===owner.side||enemy.hp<=0||enemy.reviving>0||isUntouchable(enemy)||owner.soccerDashHits.has(enemy))continue;
+        if(artDistance(enemy,fromX,fromY,owner.x,owner.y)>owner.radius+enemy.radius)continue;
+        owner.soccerDashHits.add(enemy);dealDamage(owner,enemy,3,{source:'soccerDash',sound:'tackle',color:owner.def.color});
+        if(enemy.hp>0&&enemy.reviving<=0&&!isUntouchable(enemy))knockback(enemy,{...n,boost:.6},.6);
+      }
+    }
+    if(ball.age>.18&&Math.hypot(owner.x-ball.x,owner.y-ball.y)<=owner.radius+ball.r){ball.collected=true;owner.soccerBall=null;owner.emptyEnergyTime=0;owner.soccerDash=false;owner.soccerDashKnock=null;owner.cd[0]=Math.max(0,3.75-ball.age);}
+  }
+  soccerBalls=soccerBalls.filter(ball=>!ball.collected&&ball.owner.hp>0);
+  soccerFoods=soccerFoods.filter(food=>{
+    const eater=balls.find(b=>b.def.name==='박성찬'&&b.hp>0&&b.reviving<=0&&Math.hypot(b.x-food.x,b.y-food.y)<=b.radius+food.r);
+    if(!eater)return true;
+    eater.energy=Math.min(2,eater.energy+3);eater.emptyEnergyTime=0;heal(eater,5);
+    for(const b of balls)if(b.def.name==='박성찬')b.foodWait=5+Math.random()*2;
+    return false;
+  });
+}
+function updateSoccerPushes(dt){
+  for(const b of balls){
+    const push=b.soccerPush;if(!push)continue;
+    if(b.hp<=0||b.reviving>0||isUntouchable(b)){b.soccerPush=null;continue;}
+    const active=Math.min(dt,push.remaining);push.remaining=Math.max(0,push.remaining-active);
+    b.x=Math.max(b.radius,Math.min(SIZE-b.radius,b.x+push.x*push.speed*active));
+    b.y=Math.max(b.radius,Math.min(SIZE-b.radius,b.y+push.y*push.speed*active));
+    if(push.remaining<=1e-9)b.soccerPush=null;
+  }
+}
+function drawSoccerFoods(){
+  ctx.save();
+  for(const food of soccerFoods){
+    ctx.save();ctx.strokeStyle='#ffe8a1';ctx.fillStyle='rgba(255,225,120,.1)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(food.x,food.y,food.r,0,Math.PI*2);ctx.fill();ctx.stroke();
+    const image=loadImage(['images/balls/박성찬초밥.png','images/balls/박성찬햄버거.png','images/balls/박성찬치킨.png'][food.kind]);
+    if(image.complete&&image.naturalWidth){ctx.save();ctx.beginPath();ctx.arc(food.x,food.y,food.r-2,0,Math.PI*2);ctx.clip();const size=food.r*2.3,scale=Math.min(size/image.naturalWidth,size/image.naturalHeight),w=image.naturalWidth*scale,h=image.naturalHeight*scale;ctx.drawImage(image,food.x-w/2,food.y-h/2,w,h);ctx.restore();}
+    ctx.restore();
+  }
+  ctx.restore();
+}
+function drawSoccer(){
+  ctx.save();
+  for(const ball of soccerBalls){
+    ctx.save();ctx.translate(ball.x,ball.y);ctx.rotate(ball.age*4);
+    const active=ball.canDamage&&ball.damage-ball.hits*5>0&&Math.hypot(ball.vx,ball.vy)>1e-6;
+    if(active){ctx.strokeStyle='#56beff';ctx.shadowColor='#299bff';ctx.shadowBlur=20;ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,ball.r+3,0,Math.PI*2);ctx.stroke();}
+    const image=loadImage('images/balls/박성찬축구공.png');
+    if(image.complete&&image.naturalWidth)ctx.drawImage(image,-ball.r,-ball.r,ball.r*2,ball.r*2);
+    else{ctx.fillStyle='#fff';ctx.strokeStyle='#253344';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,ball.r,0,Math.PI*2);ctx.fill();ctx.stroke();}
+    ctx.restore();
+  }
+  for(const b of balls){if(b.def.name!=='박성찬'||b.hp<=0)continue;const width=b.radius*1.6,x=b.x-width/2,y=b.y+b.radius+13;ctx.fillStyle='rgba(0,0,0,.75)';ctx.fillRect(x-2,y-2,width+4,11);for(let i=0;i<2;i++){ctx.fillStyle=i<b.energy?'#ffc84c':'#425063';ctx.fillRect(x+i*width/2,y,width/2-2,7);}if(b.soccerDash){ctx.strokeStyle='#b1f6ff';ctx.shadowColor='#b1f6ff';ctx.shadowBlur=20;ctx.lineWidth=3;ctx.beginPath();ctx.arc(b.x,b.y,b.radius+7,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;}}
+  ctx.restore();
+}
+let ovens = [], bakeryBread = [], heatWaves = [];
+
+CHARACTERS.push({
+  name:'이권율',hp:190,speed:'보통',size:'보통',color:'#a22c57',image:'images/balls/이권율-profile.jpg',ability:'베이커리',
+  skills:[{name:'제과제빵',cooldown:5.1,desc:'5.1초 후 상대 방향으로 오븐을 포물선 투척한다. 약 1.6~2초 비행 후 착지하며 반지름 145px 안의 적에게 25 피해와 2초 진동·기절을 주고 반지름 190px 화상 파장을 발사한다. 비행 중에는 충돌하거나 공격받지 않는다. 오븐이 있으면 쿨타임은 멈춘다. 오븐은 벽처럼 양쪽 캐릭터를 튕기며 내구도는 6이다. 적 본체 접촉 시 내구도 1 감소와 중첩 가능한 3초간 초당 2 화상. 적 접촉 또는 기술 피격 시 내구도 1 감소와 반지름 190px 화상 파장을 발사한다.'}],
+  trait:{name:'맛있는 빵',desc:'오븐은 3.5~5.5초마다 이권율 방향으로 빵을 던진다. 적 적중 9 피해, 이권율 적중 체력 10 회복. 발사 시 0.5초간 문이 열리며 오른쪽 위 불꽃이 다음 빵까지의 진행도를 표시한다.'},
+  update(self,other,dt){
+    if(self.hp<=0||self.reviving>0||self.cd[0]>0||ovens.some(o=>o.hp>0))return;
+    const angle=Math.atan2(other.y-self.y,other.x-self.x),distance=140+Math.random()*180,r=51;
+    const x=Math.max(r,Math.min(SIZE-r,self.x+Math.cos(angle)*distance)),y=Math.max(r,Math.min(SIZE-r,self.y+Math.sin(angle)*distance));
+    ovens.push({owner:self,x:self.x,y:self.y,startX:self.x,startY:self.y,endX:x,endY:y,age:0,flight:1.3+Math.hypot(x-self.x,y-self.y)/450,landed:false,radius:r,hp:6,interval:3.5+Math.random()*2,bake:0,open:0,contacts:new Set(),effects:new Map()});self.cd[0]=5.1;
+  }
+});
+function burnFromOven(owner,target){
+  if(target.hp>0&&target.reviving<=0&&!isUntouchable(target)){
+    target.bakeryBurn ||= [];
+    target.bakeryBurn.push({owner,remaining:3,tick:0});
+  }
+}
+function damageOven(o,skill=true,amount=1){
+  if(o.hp<=0||!o.landed)return;o.hp-=amount;sound.play('wallHit');
+  if(skill)heatWaves.push({owner:o.owner,x:o.x,y:o.y,radius:0,hit:new Set()});
+}
+function interceptOven(p,x,y){
+  const o=ovens.find(o=>o.hp>0&&o.landed&&o.owner.side!==p.owner.side&&artDistance(o,x,y,p.x,p.y)<=o.radius+p.r);
+  if(!o)return false;damageOven(o,true,p.fpsBullet?.5:1);return true;
+}
+function collideOven(o,b){
+  if(!o.landed||b.hp<=0||b.reviving>0||isUntouchable(b))return false;
+  const cx=Math.max(o.x-o.radius,Math.min(o.x+o.radius,b.x)),cy=Math.max(o.y-o.radius,Math.min(o.y+o.radius,b.y));
+  let dx=b.x-cx,dy=b.y-cy,d=Math.hypot(dx,dy);
+  if(d>b.radius+1)return false;
+  if(d===0){dx=b.x-o.x;dy=b.y-o.y;if(!dx&&!dy)dx=1;d=Math.hypot(dx,dy);const scale=o.radius+b.radius+1;b.x=o.x+dx/d*scale;b.y=o.y+dy/d*scale;}
+  else{b.x+=dx/d*(b.radius-d+1);b.y+=dy/d*(b.radius-d+1);}
+  const nx=dx/d,ny=dy/d,dot=b.vx*nx+b.vy*ny;
+  if(dot<0)setDirection(b,b.vx-2*dot*nx,b.vy-2*dot*ny);
+  return true;
+}
+function updateBakery(dt){
+  for(const b of balls){
+    if(!b.bakeryBurn)continue;
+    b.bakeryBurn=b.bakeryBurn.filter(burn=>{
+      const active=Math.min(dt,burn.remaining);burn.remaining-=active;burn.tick+=active;
+      while(burn.tick>=1-1e-9&&b.hp>0){burn.tick=Math.max(0,burn.tick-1);if(dealDamage(burn.owner,b,2,{source:'bakeryBurn',color:'#ff943e'})>0)b.bakeryBurnFlash=.25;}
+      return burn.remaining>1e-9&&b.hp>0;
+    });
+    if(!b.bakeryBurn.length)b.bakeryBurn=null;
+  }
+  for(const o of ovens){
+    if(o.hp<=0)continue;o.open=Math.max(0,o.open-dt);
+    if(!o.landed){
+      o.age+=dt;const t=Math.min(1,o.age/o.flight);
+      o.x=o.startX+(o.endX-o.startX)*t;o.y=o.startY+(o.endY-o.startY)*t;
+      if(t<1)continue;
+      o.landed=true;heatWaves.push({owner:o.owner,x:o.x,y:o.y,radius:0,hit:new Set()});sound.play('quakeLanding');
+      for (const target of balls) {
+        if (target.side === o.owner.side || target.hp <= 0 || target.reviving > 0 || isUntouchable(target) || Math.hypot(target.x-o.x,target.y-o.y) > 145+target.radius) continue;
+        dealDamage(o.owner,target,25,{source:'ovenLanding',sound:false,color:'#ff963d'});
+        if (target.hp > 0 && target.reviving <= 0 && !isUntouchable(target)) target.stun=Math.max(target.stun,2);
+      }
+    }
+    for(const b of balls){
+      const hit=collideOven(o,b);
+      if(hit&&!o.contacts.has(b)&&b.side!==o.owner.side){damageOven(o,true);burnFromOven(o.owner,b);}
+      if(hit)o.contacts.add(b);else o.contacts.delete(b);
+    }
+    if(o.hp<=0)continue;
+    const effects=new Set();
+    for(const m of artGround)if(m.owner.side!==o.owner.side&&artTouches(m,{...o,side:o.owner.side}))effects.add(m.stroke||m);
+    for(const q of quakes)if(q.owner.side!==o.owner.side&&Math.hypot(q.x-o.x,q.y-o.y)<=q.radius+o.radius)effects.add(q);
+    for(const g of glassShards)if(g.owner.side!==o.owner.side&&Math.hypot(g.x-o.x,g.y-o.y)<=g.r+o.radius)effects.add(g);
+    wastes=wastes.filter(w=>{if(w.owner.side!==o.owner.side&&Math.hypot(w.x-o.x,w.y-o.y)<=w.r+o.radius){damageOven(o);return false;}return true;});
+    for(const w of musicWaves){
+      const d=Math.hypot(o.x-w.x,o.y-w.y),angle=Math.abs(Math.atan2(Math.sin(Math.atan2(o.y-w.y,o.x-w.x)-w.angle),Math.cos(Math.atan2(o.y-w.y,o.x-w.x)-w.angle)));
+      if(w.owner.side!==o.owner.side&&d+o.radius>=w.previous&&d-o.radius<=w.radius&&angle<=w.half+Math.asin(Math.min(1,o.radius/(d||1))))effects.add(w);
+    }
+    for(const b of balls){
+      if(b.side===o.owner.side)continue;
+      const effect=b.domain||b.coneFlash||b.kick||b.art;
+      if(effect&&((b.domain&&Math.hypot(b.x-o.x,b.y-o.y)<=b.domain.r+o.radius)||(b.coneFlash&&coneHits({...b.coneFlash,x:b.x,y:b.y},{...o,reviving:0}))||(b.kick&&Math.hypot(b.x-o.x,b.y-o.y)<=b.radius+90+o.radius)||(b.art?.kind==='draw'&&artDistance(o,b.x,b.y,b.x+Math.cos(b.artAngle)*115,b.y+Math.sin(b.artAngle)*115)<=o.radius+7)))effects.add(effect);
+    }
+    for(const key of o.effects.keys())if(!effects.has(key))o.effects.delete(key);
+    for(const key of effects){if(!o.effects.has(key)){damageOven(o);o.effects.set(key,0);}else if(artGround.includes(key)||quakes.includes(key)){const tick=o.effects.get(key)+dt;if(tick>=1){damageOven(o);o.effects.set(key,tick-1);}else o.effects.set(key,tick);}}
+    if(o.hp<=0)continue;
+    o.bake+=dt;
+    if(o.bake>=o.interval){
+      const n=directionTo(o,o.owner);bakeryBread.push({owner:o.owner,x:o.x,y:o.y,vx:n.x*300,vy:n.y*300,age:0,distance:0,r:32,landingRadius:50});
+      o.bake=0;o.interval=3.5+Math.random()*2;o.open=.5;sound.play('coin');
+    }
+  }
+  ovens=ovens.filter(o=>o.hp>0&&o.owner.hp>0);
+  heatWaves=heatWaves.filter(w=>{
+    const previous=w.radius;w.radius+=360*dt;
+    for(const b of balls){if(b.side===w.owner.side||w.hit.has(b)||isUntouchable(b)||b.reviving>0||b.hp<=0)continue;const d=Math.hypot(b.x-w.x,b.y-w.y);if(d-b.radius<=Math.min(190,w.radius)&&d+b.radius>=previous){w.hit.add(b);burnFromOven(w.owner,b);}}
+    return w.radius<190;
+  });
+  bakeryBread=bakeryBread.filter(p=>{
+    const x=p.x,y=p.y;p.age+=dt;
+    const travel=Math.min(300*dt,Math.max(0,240-(p.distance||0)));
+    p.x+=p.vx/300*travel;p.y+=p.vy/300*travel;p.distance=(p.distance||0)+travel;
+    if(p.x<p.r){p.x=p.r;p.vx=Math.abs(p.vx);}else if(p.x>SIZE-p.r){p.x=SIZE-p.r;p.vx=-Math.abs(p.vx);}
+    if(p.y<p.r){p.y=p.r;p.vy=Math.abs(p.vy);}else if(p.y>SIZE-p.r){p.y=SIZE-p.r;p.vy=-Math.abs(p.vy);}
+    if(p.age<1)return true;
+    const justLanded=p.age-dt<1;
+    const landedX=justLanded?p.x:x,landedY=justLanded?p.y:y;
+    const hitRadius=justLanded?(p.landingRadius||50):p.r;
+    for(const b of balls){if(b.hp<=0||b.reviving>0||isUntouchable(b))continue;if(artDistance(b,landedX,landedY,p.x,p.y)<=hitRadius+b.radius){if(b===p.owner)heal(b,10);else dealDamage(p.owner,b,9,{source:'bread',projectile:true});return false;}}
+    return true;
+  });
+}
+function drawOvenBody(o){
+  const flame=loadImage('images/balls/이권율불꽃.png');
+  const lift=o.landed?0:Math.sin(Math.min(1,o.age/o.flight)*Math.PI)*130;
+    ctx.save();ctx.translate(0,-lift);
+    const img=loadImage(o.open>0?'images/balls/이권율열린오븐.png':'images/balls/이권율오븐.png');
+    if(img.complete&&img.naturalWidth)ctx.drawImage(img,o.x-65,o.y-65,130,130);else{ctx.fillStyle='#b66a22';ctx.fillRect(o.x-o.radius,o.y-o.radius,o.radius*2,o.radius*2);}
+    ctx.fillStyle='#25232a';ctx.fillRect(o.x-32,o.y+66,64,8);
+    ctx.fillStyle=o.hp>2?'#ffb24e':'#ff6559';ctx.fillRect(o.x-32,o.y+66,64*Math.max(0,o.hp)/6,8);
+    ctx.strokeStyle='#e5bd83';ctx.lineWidth=1;ctx.strokeRect(o.x-32,o.y+66,64,8);
+    const x=o.x+50,y=o.y-81,width=24,height=32,progress=Math.min(1,o.bake/o.interval);
+    if(flame.complete&&flame.naturalWidth){ctx.save();ctx.globalAlpha=.22;ctx.drawImage(flame,x,y,width,height);ctx.restore();ctx.save();ctx.beginPath();ctx.rect(x,y+height*(1-progress),width,height*progress);ctx.clip();ctx.drawImage(flame,x,y,width,height);ctx.restore();}
+    ctx.restore();
+}
+function drawBakery(){
+  const flame=loadImage('images/balls/이권율불꽃.png'),bread=loadImage('images/balls/이권율빵.png');ctx.save();
+  for(const o of ovens){
+    const lift=o.landed?0:Math.sin(Math.min(1,o.age/o.flight)*Math.PI)*130;
+    ctx.fillStyle='rgba(255,151,53,.12)';ctx.strokeStyle='#f6a84c';ctx.lineWidth=2;
+    if(!o.landed)ctx.setLineDash([7,5]);
+    const groundX=o.landed?o.x:o.endX,groundY=o.landed?o.y:o.endY;
+    if (!o.landed) {
+      ctx.save();ctx.fillStyle='rgba(255,112,30,.16)';ctx.strokeStyle='#ffb247';ctx.lineWidth=3;
+      ctx.beginPath();ctx.arc(groundX,groundY,145,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+    }
+    ctx.fillRect(groundX-o.radius,groundY-o.radius,o.radius*2,o.radius*2);ctx.strokeRect(groundX-o.radius,groundY-o.radius,o.radius*2,o.radius*2);ctx.setLineDash([]);
+    if(o.landed)drawOvenBody(o);
+  }
+  const fire=loadImage('images/balls/이권율벽화염.png');
+  for(const w of heatWaves){
+    ctx.globalAlpha=Math.min(1,Math.max(0,(190-w.radius)/45));
+    if(fire.complete&&fire.naturalWidth){
+      const count=20,width=Math.max(10,w.radius*Math.PI*2/count*1.12),height=32;
+      for(let i=0;i<count;i++){
+        const angle=i*Math.PI*2/count;
+        ctx.save();ctx.translate(w.x+Math.cos(angle)*w.radius,w.y+Math.sin(angle)*w.radius);ctx.rotate(angle+Math.PI/2);
+        const sw=fire.naturalWidth/5,sx=(i%5)*sw;
+        ctx.drawImage(fire,sx,0,sw,fire.naturalHeight*.85,-width/2,-height,width,height);ctx.restore();
+      }
+    }else{ctx.strokeStyle='#ff8b38';ctx.lineWidth=5;ctx.beginPath();ctx.arc(w.x,w.y,w.radius,0,Math.PI*2);ctx.stroke();}
+  }ctx.globalAlpha=1;
+  for(const p of bakeryBread){
+    if(p.age<1){
+      let x=p.x,y=p.y,vx=p.vx,vy=p.vy,remaining=Math.max(0,240-(p.distance||0));
+      while(remaining>0){
+        const step=Math.min(remaining,3);remaining-=step;x+=vx/300*step;y+=vy/300*step;
+        if(x<p.r){x=p.r;vx=Math.abs(vx);}else if(x>SIZE-p.r){x=SIZE-p.r;vx=-Math.abs(vx);}
+        if(y<p.r){y=p.r;vy=Math.abs(vy);}else if(y>SIZE-p.r){y=SIZE-p.r;vy=-Math.abs(vy);}
+      }
+      ctx.save();ctx.fillStyle='rgba(240,179,90,.15)';ctx.strokeStyle='#f4c57e';ctx.lineWidth=2;ctx.setLineDash([5,4]);
+      ctx.beginPath();ctx.arc(x,y,p.landingRadius||50,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+    }
+    const lift=p.age<1?Math.sin(p.age*Math.PI)*50:0;
+    if(bread.complete&&bread.naturalWidth){const width=80,height=width*bread.naturalHeight/bread.naturalWidth;ctx.drawImage(bread,p.x-width/2,p.y-lift-height/2,width,height);}else{ctx.fillStyle='#ecac57';ctx.beginPath();ctx.arc(p.x,p.y-lift,15,0,Math.PI*2);ctx.fill();}
+  }
+  ctx.restore();
+}
+let amplifiers = [];
+CHARACTERS.push({
+  name:'박성웅',hp:200,speed:'보통',size:'보통',color:'#176078',image:'images/balls/박성웅.jpg',ability:'기타리스트',
+  skills:[{name:'엠프 투척',cooldown:6,desc:'처음 5초 후, 이후 6초마다 상대 방향으로 무작위 거리만큼 앰프를 포물선 투척한다. 착지 범위 반지름 115px에 기본 5 피해 + 실제 비행거리 80px마다 추가 1 피해(최대 추가 5). 적중 시 1초 진동·기절 후 넉백. 비행 중 무적이며 먼 거리일수록 오래 날아간다. 착지한 앰프는 적 접촉·피격 합계 3회에 파괴되며 비행 중인 앰프를 포함해 최대 3개 유지하며 3개가 있으면 투척 쿨타임이 멈춘다.'}],
+  trait:{name:'기타리스트',desc:'착지한 각 앰프는 반지름 250px에 매초 파동을 발사한다. 파동은 각각 3 피해를 준다.'},
+  init(self){self.cd[0]=5;},
+  update(self,other,dt){
+    if(self.hp<=0||self.reviving>0||self.cd[0]>0||amplifiers.filter(a=>a.owner===self&&a.hits<3).length>=3)return;
+    const angle=Math.atan2(other.y-self.y,other.x-self.x),distance=100+Math.random()*300,r=24;
+    const x=Math.max(r,Math.min(SIZE-r,self.x+Math.cos(angle)*distance)),y=Math.max(r,Math.min(SIZE-r,self.y+Math.sin(angle)*distance));
+    const travel=Math.hypot(x-self.x,y-self.y);
+    amplifiers.push({owner:self,x:self.x,y:self.y,startX:self.x,startY:self.y,endX:x,endY:y,radius:r,age:0,flight:.85+travel/350,landingDamage:5+Math.min(5,Math.floor(travel/80)),landed:false,hits:0,tick:0,waves:[],contacts:new Set(),effects:new Set()});
+    self.cd[0]=6;
+  }
+});
+function ampHit(a,amount=1){if(a.landed&&a.hits<3){a.hits+=amount;sound.play('wallHit');}}
+function interceptAmp(p,x,y){
+  if(interceptOven(p,x,y))return true;
+  const a=amplifiers.find(a=>a.landed&&a.hits<3&&a.owner.side!==p.owner.side&&artDistance(a,x,y,p.x,p.y)<=a.radius+p.r);
+  if(!a)return false;ampHit(a,p.fpsBullet?.5:1);return true;
+}
+function updateAmplifiers(dt){
+  for (const b of balls) if (b.guitarStrum > 0) b.guitarStrum = Math.max(0, b.guitarStrum - dt);
+  for(const a of amplifiers){
+    a.age+=dt;
+    if(!a.landed){
+      const t=Math.min(1,a.age/a.flight);a.x=a.startX+(a.endX-a.startX)*t;a.y=a.startY+(a.endY-a.startY)*t;
+      if(t<1)continue;a.landed=true;
+      for(const b of balls){
+        if(b.side!==a.owner.side&&b.hp>0&&b.reviving<=0&&!isUntouchable(b)&&Math.hypot(b.x-a.x,b.y-a.y)<=115+b.radius){
+          const damage=dealDamage(a.owner,b,a.landingDamage??5,{source:'ampLanding',sound:'tackle'});
+          if(damage>0){
+            ampHit(a);
+            if(Math.hypot(b.x-a.x,b.y-a.y)<=32+b.radius)a.contacts.add(b);
+          }
+          if(b.hp<=0||b.reviving>0||isUntouchable(b))continue;
+          b.stun=Math.max(b.stun,1);
+          b.stunKnockback={...directionTo(a,b),ampOwner:a.owner};
+        }
+      }
+    }
+    if(a.hits>=3)continue;
+    for(const b of balls){
+      if(b.side===a.owner.side||b.hp<=0||b.reviving>0||isUntouchable(b))continue;
+      const contact=Math.hypot(b.x-a.x,b.y-a.y)<=32+b.radius;
+      if(contact&&!a.contacts.has(b))ampHit(a);
+      if(contact)a.contacts.add(b);else a.contacts.delete(b);
+    }
+    const effects=new Set();
+    for(const g of glassShards){if(g.owner.side!==a.owner.side&&Math.hypot(g.x-a.x,g.y-a.y)<=g.r+a.radius){effects.add(g);if(!a.effects.has(g))ampHit(a);}}
+    wastes=wastes.filter(w=>{if(w.owner.side!==a.owner.side&&Math.hypot(w.x-a.x,w.y-a.y)<=w.r+a.radius){ampHit(a);return false;}return true;});
+    for(const m of artGround){if(m.owner.side!==a.owner.side&&artTouches(m,{...a,side:a.owner.side})){effects.add(m.stroke||m);if(!a.effects.has(m.stroke||m))ampHit(a);}}
+    for(const q of quakes){if(q.owner.side!==a.owner.side&&Math.hypot(q.x-a.x,q.y-a.y)<=q.radius+a.radius){effects.add(q);if(!a.effects.has(q))ampHit(a);}}
+    for(const w of musicWaves){
+      const d=Math.hypot(a.x-w.x,a.y-w.y),angle=Math.abs(Math.atan2(Math.sin(Math.atan2(a.y-w.y,a.x-w.x)-w.angle),Math.cos(Math.atan2(a.y-w.y,a.x-w.x)-w.angle)));
+      if(w.owner.side!==a.owner.side&&d+a.radius>=w.previous&&d-a.radius<=w.radius&&angle<=w.half+Math.asin(Math.min(1,a.radius/(d||1)))){effects.add(w);if(!a.effects.has(w))ampHit(a);}
+    }
+    for(const b of balls){
+      if(b.side===a.owner.side)continue;
+      const effect=b.domain||b.coneFlash||b.kick||b.art;
+      const domain=b.domain&&Math.hypot(b.x-a.x,b.y-a.y)<=b.domain.r+a.radius;
+      const cone=b.coneFlash&&coneHits({...b.coneFlash,x:b.x,y:b.y},{...a,hp:1,reviving:0});
+      const kick=b.kick&&b.kick.active>0&&Math.hypot(b.x-a.x,b.y-a.y)<=b.radius+90+a.radius;
+      const pen=b.art?.kind==='draw'&&artDistance(a,b.x,b.y,b.x+Math.cos(b.artAngle)*115,b.y+Math.sin(b.artAngle)*115)<=a.radius+7;
+      if(effect&&(domain||cone||kick||pen)){effects.add(effect);if(!a.effects.has(effect))ampHit(a);}
+    }
+    a.effectTicks ||= new Map();
+    for(const key of a.effectTicks.keys())if(!effects.has(key))a.effectTicks.delete(key);
+    for(const key of effects){
+      if(artGround.includes(key)||quakes.includes(key)){
+        const tick=(a.effectTicks.get(key)||0)+dt;
+        if(tick>=1){ampHit(a);a.effectTicks.set(key,tick-1);}else a.effectTicks.set(key,tick);
+      }
+    }
+    a.effects=effects;
+    a.waves=a.waves.filter(w=>(w.radius+=360*dt)<250);
+    a.tick+=dt;
+    while(a.tick>=1&&a.hits<3){a.tick-=1;a.waves.push({radius:0,hit:new Set()});a.owner.guitarStrum=0.5;}
+    for(const w of a.waves)for(const b of balls){
+      if(b.side===a.owner.side||b.hp<=0||b.reviving>0||isUntouchable(b)||w.hit.has(b))continue;
+      const d=Math.hypot(b.x-a.x,b.y-a.y);
+      if(d-b.radius<=w.radius&&d+b.radius>=w.radius-360*dt){w.hit.add(b);dealDamage(a.owner,b,3,{source:'ampWave',sound:'hit'});}
+    }
+  }
+  amplifiers=amplifiers.filter(a=>a.hits<3&&a.owner.hp>0);
+}
+function drawAmplifiers(){
+  ctx.save();
+  for(const a of amplifiers){
+    if(!a.landed){ctx.fillStyle='rgba(113,83,161,0.13)';ctx.strokeStyle='#aa8ddb';ctx.setLineDash([7,5]);ctx.beginPath();ctx.arc(a.endX,a.endY,115,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.setLineDash([]);}
+    const waveImage=loadImage('images/balls/박성웅스파크파동.png');
+    for(const w of a.waves){
+      ctx.globalAlpha=1-w.radius/250;
+      if(waveImage.complete&&waveImage.naturalWidth){
+        const size=w.radius*2/.75;
+        ctx.drawImage(waveImage,a.x-size/2,a.y-size/2,size,size);
+      }else{
+        ctx.strokeStyle='#64baff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(a.x,a.y,w.radius,0,Math.PI*2);ctx.stroke();
+      }
+    }ctx.globalAlpha=1;
+    const t=Math.min(1,a.age/a.flight),lift=a.landed?0:Math.sin(t*Math.PI)*(70+a.flight*35);
+    ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(a.x,a.y,26,9,0,0,Math.PI*2);ctx.fill();
+    const images=['images/balls/박성웅앰프정상.png','images/balls/박성웅앰프기스.png','images/balls/박성웅앰프파손.png'];
+    const img=loadImage(images[Math.min(2,Math.floor(a.hits))]);
+    ctx.save();ctx.translate(a.x,a.y-lift);
+    if(img.complete&&img.naturalWidth){
+      const height=72,width=height*img.naturalWidth/img.naturalHeight;
+      ctx.drawImage(img,-width/2,-height/2,width,height);
+    }else{
+      ctx.fillStyle='#26212d';ctx.strokeStyle='#bd9ce8';ctx.lineWidth=3;
+      ctx.fillRect(-24,-27,48,54);ctx.strokeRect(-24,-27,48,54);
+    }
+    ctx.restore();
+  }ctx.restore();
+}
 let picks = [0, 1];
+function isUntouchable(b) { if(b.mireun)return true;if(electionState?.phase==='election'&&b!==electionState.owner)return false;return b.dodgeTime > 0 || b.jumpTime > 0 || b.tripAir; }
+function enemyOf(self) {
+  return balls.find(b => b.side !== self.side);
+}
+function ownsSlowMotion(b){return b.hp>0&&(b.soccerDash||(b.def.name==='이지원'&&isUntouchable(b)));}
 let balls = [];
 let texts = [];
-let state = 'ready'; // ready | running | over
+let state = 'ready'; // ready | running | paused | over
 let elapsed = 0;
 let winner = null;
+let endSequence = null;
 let lastTime = 0;
 let projectiles = [];
+let wastes = [];
+let glassShards = [];
+let quakes = [];
+let studyImpacts = [];
+let artBalls = [], artGround = [];
+let readingBooks = [];
+let musicWaves = [];
 let touching = false; // 두 공이 맞닿아 있는 동안 접촉 스킬이 매 프레임 반복 발동하지 않게 한다
 let fontScale = 1; // 화면이 작아 캔버스가 축소되면 글자를 키워 읽을 수 있게 한다
 
 function px(size) { return `${Math.round(size * fontScale)}px`; }
 
 function makeBall(def, side) {
-  const radius = BALL_SIZE[def.size];
+  const radius = def.radius ?? BALL_SIZE[def.size];
   const speed = SPEED[def.speed];
   const angle = Math.random() * Math.PI * 2;
   const ball = {
@@ -641,19 +2531,109 @@ function makeBall(def, side) {
     flash: 0,
     reviving: 0,
     slow: 0,
+    kickRush: null,
+    stun: 0,
+    stunKnockback: null,
     coinMark: null,
   };
   if (def.init) def.init(ball);
   return ball;
 }
 
+let mireunIntro=null;
+function clearMireunEffects(b){
+  b.stun=0;b.stunKnockback=null;b.boost=0;b.slow=0;b.darkBurn=null;b.bakeryBurn=null;b.quakeWall=null;b.kickRush=null;b.campaignPull=null;b.coinMark=null;b.quakeShake=0;b.conureFlash=0;b.flash=0;b.bakeryBurnFlash=0;b.mireunHitFlash=0;
+}
+function startMireun(b){
+  if(b.def.name!=='김재윤'||b.mireunUsed||b.reviving>0)return;
+  b.mireunUsed=true;b.hp=8;b.mireun={age:0,attached:false,hitTimer:0};b.art=null;b.artRoll=0;
+  clearMireunEffects(b);b.vx=0;b.vy=0;
+  projectiles=projectiles.filter(p=>p.owner!==b);artBalls=artBalls.filter(p=>p.owner!==b);artGround=artGround.filter(p=>p.owner!==b);
+  mireunIntro={owner:b,remaining:1.5};
+  loadImage('images/balls/김재윤 미련남.jpg');loadImage('images/balls/김재윤 미련남-배경제거.png');
+}
+function updateMireun(dt){
+  for(const b of balls){
+    const m=b.mireun;if(!m||b.hp<=0)continue;
+    clearMireunEffects(b);m.age=Math.min(8,m.age+dt);b.hp=Math.max(0,8-Math.floor(m.age+1e-9));
+    if(m.age>=8-1e-9){if(m.originalRadius)b.radius=m.originalRadius;b.hp=0;b.mireunExpired=true;b.mireun=null;continue;}
+    const target=enemyOf(b);if(target.hp<=0&&target.reviving<=0)continue;
+    if(!m.attached){
+      const d=Math.hypot(target.x-b.x,target.y-b.y),n=directionTo(b,target),contact=b.radius+target.radius-14;
+      const step=Math.min(SPEED['보통']*dt,Math.max(0,d-contact));b.x+=n.x*step;b.y+=n.y*step;
+      if(d-step<=contact+1){m.attached=true;m.originalRadius=b.radius;b.radius*=.7;m.offset=Math.PI*.75;m.hitTimer=0;}
+    }
+    if(m.attached){
+      const offset=b.radius+target.radius-14;b.x=target.x-Math.SQRT1_2*offset;b.y=target.y+Math.SQRT1_2*offset;b.vx=0;b.vy=0;
+      m.hitTimer+=dt;
+      while(m.hitTimer>=1-1e-9&&target.hp>0){m.hitTimer=Math.max(0,m.hitTimer-1);if(dealDamage(b,target,2+Math.floor(Math.random()*3),{source:'mireun',sound:'hit',color:'#ff83b7'})>0)target.mireunHitFlash=.25;}
+    }
+    b.x=Math.max(b.radius,Math.min(SIZE-b.radius,b.x));b.y=Math.max(b.radius,Math.min(SIZE-b.radius,b.y));
+  }
+}
+function drawMireun(){
+  for(const b of balls){if(!b.mireun||b.hp<=0)continue;
+    const alternate=Math.floor(b.mireun.age)%2===1;
+    for(const [side,number] of [['왼손',alternate?2:1],['오른손',alternate?1:2]]){
+      const shake=mireunShake(b),img=loadImage('images/balls/김재윤 '+side+number+'.png'),size=b.mireun.attached?34:48,x=b.x+shake.x+(side==='왼손'?-1:1)*(b.radius+2);
+      if(img.complete&&img.naturalWidth){const scale=Math.min(size/img.naturalWidth,size/img.naturalHeight),w=img.naturalWidth*scale,h=img.naturalHeight*scale;ctx.drawImage(img,x-w/2,b.y+shake.y-mireunLift(b)-h/2,w,h);}
+    }
+  }
+  if(mireunIntro)drawMireunNotice();
+}
+function drawMireunNotice(){
+  const age=1.5-mireunIntro.remaining,fade=Math.max(0,Math.min(1,age/.15,mireunIntro.remaining/.2));
+  ctx.save();ctx.globalAlpha=fade;ctx.translate(SIZE/2,SIZE*.72);ctx.rotate(-.025);
+  const width=SIZE*.82,height=SIZE*.25,left=-width/2,top=-height/2;
+  ctx.shadowColor='rgba(0,0,0,.35)';ctx.shadowBlur=14;ctx.shadowOffsetY=5;
+  ctx.beginPath();ctx.moveTo(left,top);
+  for(let i=1;i<=32;i++)ctx.lineTo(left+width*i/32,top+(i%2?4:0));
+  ctx.lineTo(width/2,height/2);
+  for(let i=31;i>=0;i--)ctx.lineTo(left+width*i/32,height/2-(i%2?4:0));
+  ctx.closePath();ctx.fillStyle='#fff4d9';ctx.fill();ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+  ctx.strokeStyle='rgba(145,113,65,.15)';ctx.lineWidth=1;
+  for(let y=top+24;y<height/2;y+=24){ctx.beginPath();ctx.moveTo(left+15,y);ctx.lineTo(width/2-15,y);ctx.stroke();}
+  ctx.fillStyle='rgba(174,145,96,.12)';ctx.beginPath();ctx.moveTo(width/2-28,top+2);ctx.lineTo(width/2-2,top+2);ctx.lineTo(width/2-2,top+28);ctx.closePath();ctx.fill();
+  ctx.textAlign='center';ctx.fillStyle='#49372d';ctx.font='bold 27px "휴먼편지체", "Segoe Print", "Malgun Gothic", sans-serif';ctx.fillText('김재윤',0,top+57);
+  ctx.font='bold 40px "휴먼편지체", "Segoe Print", "Malgun Gothic", sans-serif';ctx.fillText('미련남 발동!',0,top+108);
+  ctx.strokeStyle='#b27665';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-119,top+119);ctx.quadraticCurveTo(0,top+124,119,top+118);ctx.stroke();
+  const image=loadImage('images/balls/김재윤 미련남-배경제거.png');
+  if(image.complete&&image.naturalWidth){const size=SIZE*.47,scale=Math.min(size/image.naturalWidth,size/image.naturalHeight),w=image.naturalWidth*scale,h=image.naturalHeight*scale;ctx.drawImage(image,-w/2,top-h+17,w,h);}
+  ctx.restore();
+}
+function mireunShake(b){
+  if(!b.mireun?.attached)return {x:0,y:0};
+  const t=b.mireun.age;
+  return {x:Math.sin(t*83)*2.3,y:Math.sin(t*107)*1.4};
+}
+function mireunLift(b){
+  if(!b.mireun?.attached)return 0;
+  const target=enemyOf(b);
+  return travelLift(target)+(target.jumpTime>0?Math.sin((1-target.jumpTime)*Math.PI)*125:0)+(target.pullupJump>0?Math.sin((1-target.pullupJump/.3)*Math.PI)*10:0);
+}
 function reset() {
+  mireunIntro=null;
+  soccerBalls=[];soccerFoods=[];soccerDashFade=0;
+  hackScene=null; electionState=null;electionResult=null;electionFrozenFrame=false;
+
+  fpsMagazines = []; fpsBrokenGear = [];
+  ovens = []; bakeryBread = []; heatWaves = [];
+  amplifiers = [];
+  endSequence = null;
+
+  conures=[];campaignWaves=[];
   balls = picks.map((p, side) => makeBall(CHARACTERS[p], side));
   texts = [];
   elapsed = 0;
   winner = null;
   touching = false;
   projectiles = [];
+  wastes = [];
+  glassShards = [];
+  quakes = []; studyImpacts = [];
+  artBalls = []; artGround = [];
+  readingBooks = [];
+  musicWaves = [];
 }
 
 // ---------- 피해 / 회복 ----------
@@ -665,13 +2645,22 @@ function checkLethal(ball) {
 
 // 상대의 공격. 실제로 들어간 피해량을 돌려준다
 function dealDamage(attacker, target, amount, info = {}) {
+  if(electionState||electionResult||mireunIntro||target.mireun)return 0;
+  if (attacker !== target && attacker.side === target.side) return 0;
+  const studyDot = target.tripAir && target.trip?.kind === 'study' && ['darkBurn','bakeryBurn'].includes(info.source);
+  const airborneConure = info.source==='conure' && !(target.dodgeTime>0) && !target.tripAir && target.jumpTime>0;
+  if (isUntouchable(target) && !studyDot && !airborneConure) return 0;
   if (target.reviving > 0) return 0;
-  let dmg = amount;
-  if (target.def.modifyIncoming) dmg = target.def.modifyIncoming(target, dmg, info);
+  let dmg = amount+(attacker.presidentBuff>0&&!['electionContact','electionVictory'].includes(info.source)?1:0);
+  if(attacker.presidentSkillBuff>0){if(info.source==='conure')dmg+=1;else if(info.source==='domain')dmg+=1;}
+  if (target.def.modifyIncoming && !(electionState?.phase==='election'&&target!==electionState.owner&&target.def.name==='양시온')) dmg = target.def.modifyIncoming(target, dmg, info);
+  if(target.presidentBuff>0&&target.def.name!=='박건')dmg=dmg<=2?dmg/2:dmg-2;
+  if(target.soccerDash&&info.source!=='darkPsychology')dmg*=.5;
   if (dmg <= 0) return 0;
   target.hp -= dmg;
+  if (target.def.onDamaged) target.def.onDamaged(target, attacker, dmg, info);
   target.flash = 0.15;
-  sound.play(info.sound || 'hit', info);
+  if (info.sound !== false) sound.play(info.sound || 'hit', info);
   texts.push({
     x: target.x + (Math.random() - 0.5) * 24, y: target.y - 6,
     text: `-${+dmg.toFixed(1)}`, color: info.color || attacker.def.color, life: 0.9,
@@ -682,14 +2671,17 @@ function dealDamage(attacker, target, amount, info = {}) {
 
 // 공격이 아닌 스스로의 HP 소모
 function loseHp(ball, amount) {
-  if (ball.reviving > 0) return;
+  if (ball.reviving > 0||ball.mireun) return;
   ball.hp -= amount;
   checkLethal(ball);
 }
 
 function heal(ball, amount) {
-  if (ball.reviving > 0 || amount <= 0) return;
+  if (ball.reviving > 0 || amount <= 0||ball.mireun) return;
   ball.hp = Math.min(ball.maxHp, ball.hp + amount);
+  for (const other of balls) {
+    if (other !== ball) cancelRecoveredFinisher(other, ball);
+  }
   texts.push({ x: ball.x, y: ball.y + 10, text: `+${+amount.toFixed(1)}`, color: '#6be38a', life: 0.9 });
 }
 
@@ -704,8 +2696,16 @@ function setDirection(ball, dx, dy) {
 }
 
 function knockback(ball, n, boost = KNOCKBACK_BOOST) {
+  if (isUntouchable(ball)) return;
+  if(ball.def.name==='박성찬'&&(ball.soccerWindup>0||ball.soccerRecovery>0)){
+    ball.soccerWindup=0;ball.soccerRecovery=0;ball.cd[0]=ball.soccerBall?Math.max(0,3.75-ball.soccerBall.age):3.75;
+  }
+  if (!n.quakeOwner && !n.ampOwner && (ball.finisher || ball.readCharge > 0 || ball.barActive || ball.performance || ball.campaignTime>0||ball.soccerWindup>0||ball.soccerRecovery>0)) return;
+  if (ball.stun > 0) { ball.stunKnockback = {...n,boost:n.boost??boost}; return; }
   setDirection(ball, n.x, n.y);
-  ball.boost = boost;
+  ball.boost = boost * (ball.def.name === '김지성' ? 0.5 : 1);
+  if(ball.soccerDash)ball.soccerDashKnock={x:n.x,y:n.y,speed:ball.boost*ball.speed,remaining:.15};
+  if (n.quake) ball.quakeWall = { quake:n.quake, remaining:n.wallDuration ?? 1.5, damage:n.wallDamage ?? 2 };
 }
 
 function collideWalls(b) {
@@ -720,6 +2720,10 @@ function collideWalls(b) {
 }
 
 function collideBalls(a, b) {
+  if (isUntouchable(a) || isUntouchable(b) || a.soccerDash || b.soccerDash) {
+    touching = false;
+    return;
+  }
   if (a.reviving > 0 || b.reviving > 0) return;
   const dx = b.x - a.x, dy = b.y - a.y;
   const dist = Math.hypot(dx, dy);
@@ -729,8 +2733,12 @@ function collideBalls(a, b) {
 
   const nx = dx / dist, ny = dy / dist;
   const overlap = minDist - dist;
-  a.x -= nx * overlap / 2; a.y -= ny * overlap / 2;
-  b.x += nx * overlap / 2; b.y += ny * overlap / 2;
+  const lockedA = a.stun > 0 || !!a.finisher || a.readCharge > 0, lockedB = b.stun > 0 || !!b.finisher || b.readCharge > 0;
+  const anchoredA = lockedA || a.barActive || a.performance || a.campaignTime>0||a.soccerWindup>0||a.soccerRecovery>0, anchoredB = lockedB || b.barActive || b.performance || b.campaignTime>0||b.soccerWindup>0||b.soccerRecovery>0;
+  const moveA = anchoredA ? 0 : anchoredB ? 1 : 0.5;
+  const moveB = anchoredB ? 0 : anchoredA ? 1 : 0.5;
+  a.x -= nx * overlap * moveA; a.y -= ny * overlap * moveA;
+  b.x += nx * overlap * moveB; b.y += ny * overlap * moveB;
 
   // 법선 방향 성분을 반사해 서로 멀어지게 한다
   const an = a.vx * nx + a.vy * ny;
@@ -744,24 +2752,60 @@ function collideBalls(a, b) {
   touching = true;
   sound.play('bump');
   const n = { x: nx, y: ny };
-  if (a.def.onContact) a.def.onContact(a, b, n);
-  if (b.def.onContact) b.def.onContact(b, a, { x: -nx, y: -ny });
+  for(const [self,other,direction,locked] of [[a,b,n,lockedA],[b,a,{x:-nx,y:-ny},lockedB]]){
+    if(!locked&&self.presidentBuff>0&&!isUntouchable(other)){
+      dealDamage(self,other,self.def.name==='박건'?1:3,{source:'electionContact',contact:true,sound:'tackle',color:'#65efad'});
+      if(other.hp>0&&other.reviving<=0)knockback(other,{...direction,boost:3},3);
+    }
+  }
+  if (!lockedA && !(isUntouchable(b)) && a.def.onContact) a.def.onContact(a, b, n);
+  if (!lockedB && !(isUntouchable(a)) && b.def.onContact) b.def.onContact(b, a, { x: -nx, y: -ny });
 }
 
 function updateProjectiles(dt) {
   projectiles = projectiles.filter(p => {
+    if (p.owner.finisher) return false;
+    const previousX=p.x,previousY=p.y;
+    if (p.homing) {
+      let moveDt = dt;
+      if (p.stickman) {
+        const age = p.walkAge || 0;
+        p.walkAge = age + dt;
+        moveDt = Math.max(0, p.walkAge - 1) - Math.max(0, age - 1);
+        if (moveDt <= 0) return true;
+      }
+      const target = p.target;
+      if (!target || (target.hp <= 0 && target.reviving <= 0)) return false;
+      if (isUntouchable(target)) p.targetLost = true;
+      if (p.targetLost) {
+        p.x += (p.vx || 0) * moveDt; p.y += (p.vy || 0) * moveDt;
+        return !!(p.vx || p.vy) && p.x >= -p.r && p.x <= SIZE + p.r && p.y >= -p.r && p.y <= SIZE + p.r;
+      }
+      const n = directionTo(p, target);
+      const speed = p.speed || 600;
+      p.vx = n.x * speed; p.vy = n.y * speed;
+      const distance = Math.hypot(target.x - p.x, target.y - p.y);
+      if (target.reviving <= 0 && !(isUntouchable(target)) && distance <= speed * moveDt + p.r + target.radius) { p.onHit(target, n); return false; }
+      p.x += n.x * Math.min(distance, speed * moveDt); p.y += n.y * Math.min(distance, speed * moveDt);
+      if(interceptAmp(p,previousX,previousY))return false;
+      return true;
+    }
     p.x += p.vx * dt;
     p.y += p.vy * dt;
+    if(interceptAmp(p,previousX,previousY))return false;
 
     let hitWall = false;
     if (p.x - p.r < 0) { p.x = p.r; p.vx = Math.abs(p.vx); hitWall = true; }
     if (p.x + p.r > SIZE) { p.x = SIZE - p.r; p.vx = -Math.abs(p.vx); hitWall = true; }
     if (p.y - p.r < 0) { p.y = p.r; p.vy = Math.abs(p.vy); hitWall = true; }
     if (p.y + p.r > SIZE) { p.y = SIZE - p.r; p.vy = -Math.abs(p.vy); hitWall = true; }
-    if (hitWall && ++p.wallHits >= SNOT_MAX_WALL_HITS) return false;
+    if (hitWall && ++p.wallHits >= (p.maxWallHits || SNOT_MAX_WALL_HITS)) {
+      if (p.onWall) p.onWall(p);
+      return false;
+    }
 
     // 부활 대기 중인 상대는 그냥 통과한다
-    const target = balls.find(b => b !== p.owner && b.reviving <= 0);
+    const target = balls.find(b => b.side !== p.owner.side && b.hp > 0 && b.reviving <= 0 && !(isUntouchable(b)) && Math.hypot(b.x-p.x,b.y-p.y) < p.r+b.radius);
     if (!target) return true;
     const dx = target.x - p.x, dy = target.y - p.y;
     const dist = Math.hypot(dx, dy);
@@ -772,48 +2816,218 @@ function updateProjectiles(dt) {
 }
 
 function update(dt) {
+  if(mireunIntro){electionFrozenFrame=true;mireunIntro.remaining=Math.max(0,mireunIntro.remaining-dt);if(mireunIntro.remaining<=1e-9)mireunIntro=null;return;}
+  electionFrozenFrame=!!(electionState||electionResult);
+  if(electionResult){electionResult.remaining=Math.max(0,electionResult.remaining-dt);if(electionResult.remaining<=1e-9){electionResult=null;finishBattleIfNeeded();}return;}
+  if(electionState){updateElection(dt);return;}
+  const realDt = dt;
+  const timeSlowed = balls.some(ownsSlowMotion);
+  if (timeSlowed) dt *= 0.3;
+  const worldDt = dt;
   elapsed += dt;
+  studyImpacts.forEach(e=>e.age+=dt); studyImpacts=studyImpacts.filter(e=>e.age<.3);
+  for (const b of balls) {
+    const burn = b.darkBurn;
+    if (!burn) continue;
+    if (b.hp <= 0 || b.reviving > 0) { b.darkBurn = null; continue; }
+    let activeDt = dt;
+    if (burn.delay > 0) {
+      const wait = Math.min(activeDt, burn.delay); burn.delay -= wait; activeDt -= wait;
+    }
+    activeDt = Math.min(activeDt, burn.remaining);
+    burn.remaining = Math.max(0, burn.remaining - activeDt); burn.tick += activeDt;
+    while (burn.tick >= 1 - 1e-9 && b.hp > 0 && b.reviving <= 0) {
+      burn.tick = Math.max(0, burn.tick - 1);
+      const damage = dealDamage(burn.owner, b, 1, { source: 'darkBurn', sound: 'hit', color: burn.owner.def.color });
+      if (damage > 0) b.darkBurnFlash = 0.25;
+    }
+    if (burn.remaining < 1e-9) b.darkBurn = null;
+  }
+  prepareKwon();
+  prepareSuspension();
   balls.forEach(b => {
-    b.cd = b.cd.map(c => Math.max(0, c - dt));
+    if(electionState||mireunIntro)return;
+    if(b.mireun){clearMireunEffects(b);b.actionDt=0;return;}
+    const dt = timeSlowed && ownsSlowMotion(b) ? realDt : worldDt;
+    b.presidentBuff=Math.max(0,(b.presidentBuff||0)-dt);
+    if(b.presidentSkillBuff>0)b.presidentSkillBuff=b.presidentBuff;
+    const frozen = Math.min(dt, b.stun);
+    b.actionDt = dt - frozen;
+    b.stun = Math.max(0, b.stun - dt);
+    if (b.stun === 0 && b.stunKnockback) {
+      const n = b.stunKnockback; b.stunKnockback = null;
+      knockback(b, n, n.boost ?? KNOCKBACK_BOOST);
+    }
+    if (b.umBackground > 0) b.umBackground = Math.max(0, b.umBackground - dt);
+    if (b.coneFlash) {
+      b.coneFlash.remaining -= dt;
+      if (b.coneFlash.remaining <= 0) b.coneFlash = null;
+    }
+    const ampLimit = b.def.name === '박성웅' && amplifiers.filter(a => a.owner === b && a.hits < 3).length >= 3;
+    const ovenActive = b.def.name === '이권율' && ovens.some(o => o.hp > 0);
+    if (!b.finisher && !ampLimit && !ovenActive && !b.trip && b.studyDone !== false) b.cd = b.cd.map(c => Math.max(0, c - b.actionDt));
+    if(b.campaignPull){
+      const pull=b.campaignPull;pull.remaining=Math.max(0,pull.remaining-dt);
+      if(pull.remaining<=0||pull.owner.hp<=0)b.campaignPull=null;
+      else if(!isUntouchable(b)&&b.actionDt>0){const trail=pull.owner.birdTrail||[],point=trail.find(p=>elapsed-p.time<=.6)||pull.owner,n=directionTo(b,point),current=Math.atan2(b.vy,b.vx),desired=Math.atan2(n.y,n.x),turn=Math.atan2(Math.sin(desired-current),Math.cos(desired-current)),angle=current+Math.max(-.8*b.actionDt,Math.min(.8*b.actionDt,turn));b.vx=Math.cos(angle)*b.speed;b.vy=Math.sin(angle)*b.speed;}
+    }
     b.flash = Math.max(0, b.flash - dt);
+    if (b.quakeWall) { b.quakeWall.remaining -= dt; if (b.quakeWall.remaining <= 0) b.quakeWall = null; }
+    if (b.quakeShake > 0) b.quakeShake = Math.max(0, b.quakeShake - dt);
+    if (b.glassImmunity > 0) b.glassImmunity = Math.max(0, b.glassImmunity - dt);
 
     if (b.reviving > 0) {
       b.reviving -= dt;
       if (b.reviving <= 0) { b.reviving = 0; b.def.onRevive(b); }
-    } else {
-      const mult = (1 + b.boost) * (b.slow > 0 ? SLOW_FACTOR : 1);
+    } else if (b.actionDt > 0 && !(b.soccerWindup>0) && !(b.soccerRecovery>0) && !b.soccerDash && !b.finisher && !(b.readCharge > 0) && !b.barActive && !b.performance && !(b.campaignTime>0) && !(b.jumpTime > 0) && !b.trip) {
+      const rush = b.kickRush;
+      const rushTime = rush ? Math.min(b.actionDt, rush.remaining) : 0;
+      const rushRatio = 1 + (SPEED['매우 빠름'] / b.speed - 1) * rushTime / b.actionDt;
+      const spinSpeed = b.kick && b.kick.spin && b.kick.spinDuration === 3.5 ? 1.20 : 1;
+
+
+
+      const artSlow = artGround.some(m => m.kind === 'paint' && artTouches(m, b)) ? 0.5 : 1;
+      const dodgeSpeed = isUntouchable(b) ? 1.30 : 1;
+      const poisonSlow = b.darkBurn && !(isUntouchable(b)) ? 0.5 : 1;
+      const awakeningSpeed = b.def.name === '양시온' ? (6+b.exerciseBonus>=20 ? SPEED['빠름']/b.speed : 6+b.exerciseBonus>=10 ? (SPEED['보통']+SPEED['빠름'])/2/b.speed : 1) : 1;
+      const mult = rushRatio * (1 + b.boost) * (b.slow > 0 ? SLOW_FACTOR : 1) * spinSpeed * artSlow * dodgeSpeed * poisonSlow * awakeningSpeed;
       b.boost = Math.max(0, b.boost - KNOCKBACK_DECAY * dt);
       b.slow = Math.max(0, b.slow - dt);
-      b.x += b.vx * mult * dt;
-      b.y += b.vy * mult * dt;
+      const previousX = b.x, previousY = b.y;
+      b.x += b.vx * mult * b.actionDt;
+      b.y += b.vy * mult * b.actionDt;
       if (collideWalls(b)) {
-        const other = balls.find(o => o !== b);
+        if (b.quakeWall) {
+          const q = b.quakeWall.quake;
+          dealDamage(q.owner,b,b.quakeWall.damage ?? 2,{source:'quakeWall',sound:'wallHit',color:q.owner.def.color});
+        }
+        const other = enemyOf(b);
+        if (rush && rushTime > 0) dealDamage(rush.owner, b, 5, { source: 'kickWall', sound: 'wallHit', color: rush.owner.def.color });
         if (b.def.onWall) b.def.onWall(b);
         if (other.def.onEnemyWall) other.def.onEnemyWall(other, b);
       }
+
+    }
+    if (b.kickRush) {
+      b.kickRush.remaining = Math.max(0, b.kickRush.remaining - dt);
+      if (b.kickRush.remaining === 0 || b.hp <= 0 || b.reviving > 0) b.kickRush = null;
     }
   });
   // 두 공이 모두 움직인 뒤에 스킬을 처리해야 먼저 처리되는 쪽이 유리해지지 않는다
   balls.forEach((b, i) => {
-    if (b.def.update) b.def.update(b, balls[1 - i], dt);
+    if (!mireunIntro&&!b.mireun&&b.def.update && b.actionDt > 0 && b.stun <= 0) b.def.update(b, enemyOf(b), b.actionDt);
   });
+  if(electionState||mireunIntro){electionFrozenFrame=true;return;}
   updateProjectiles(dt);
-  collideBalls(balls[0], balls[1]);
 
+  updateGlass(dt);
+  updateQuakes(dt);
+  updateMusicWaves(dt);
+  updateArt(dt);
+  updateAmplifiers(dt);
+  updateBakery(dt);
+  updateSoccer(dt,realDt);
+  updateSoccerPushes(dt);
+  collideBalls(balls[0], balls[1]);
+  updateFpsMagazines(dt);
+  prepareKwon();
+  prepareSuspension();
+  if(mireunIntro){electionFrozenFrame=true;return;}
+  updateMireun(dt);
+  finishBattleIfNeeded();
+}
+function finishBattleIfNeeded(){
+  if(mireunIntro)return;
   const down = balls.filter(b => b.hp <= 0 && b.reviving <= 0);
   if (down.length) {
-    state = 'over';
+    state = 'over';electionState=null;
     // 동시에 쓰러지면 체력이 덜 깎인(초과 피해가 적은) 쪽이 승리
     const [a, b] = balls;
     winner = down.length === 1 ? balls.find(x => !down.includes(x))
            : a.hp === b.hp ? null : (a.hp > b.hp ? a : b);
     for (const ball of balls) { ball.hp = Math.max(0, ball.hp); ball.flash = 0; }
-    setPickersEnabled(true);
-    sound.play(winner ? 'win' : 'draw');
+    endSequence = { age: down.some(b=>b.hackedDown)?1:0, burst: false, losers: down.slice() };
+    amplifiers = [];
+    soccerBalls=[];soccerFoods=[];for(const b of balls){b.soccerDash=false;b.soccerBall=null;}
+    ovens = []; bakeryBread = []; heatWaves = [];
+    projectiles = []; wastes = []; glassShards = []; quakes = [];
+    artBalls = []; artGround = []; readingBooks = []; musicWaves = []; conures=[];campaignWaves=[]; texts = [];
+    for (const b of balls) {
+      b.vx = 0; b.vy = 0; b.stun = 0; b.stunKnockback = null; b.quakeWall = null;
+      b.kick = null; b.kickRush = null; b.finisher = null; b.laser = null;
+      b.cone = null; b.coneFlash = null; b.roulette = 0; b.umBackground = 0;
+      b.art = null; b.artRoll = 0; b.performance = null; b.domain = null; b.campaignTime=0;b.campaignPull=null;
+      b.readCharge = 0; b.darkMagic = null; b.darkAura = 0; b.darkBurn = null; b.darkBurnFlash = 0;
+      b.jumpTime = 0; b.barActive = false; b.pullupJump = 0; b.dodgeTime = 0;
+      b.suspension = 0; b.eating = 0;
+      b.trip=null;b.tripAir=false;
+      b.bakeryBurn = null;
+    }
+    for (const b of down) { b.eliminatedByLaser = false; b.jumpTime = 0; b.kick = null; }
   }
 }
 
+function updateEndSequence(dt) {
+  if(hackScene){hackScene.remaining=Math.max(0,hackScene.remaining-dt);if(hackScene.remaining<=0)hackScene=null;}
+  if (!endSequence || endSequence.age >= 2) return;
+  const e = endSequence;
+  e.age = Math.min(2, e.age + dt);
+  if (e.age >= 1 && !e.burst) { e.burst = true; sound.play('tackle'); }
+  if (e.age >= 2) { setPickersEnabled(true); sound.play(winner ? 'win' : 'draw'); }
+}
+function drawDefeatBurst() {
+  if (!endSequence || endSequence.age < 1 || endSequence.age >= 2) return;
+  const t = endSequence.age - 1;
+  ctx.save();
+  for (const b of endSequence.losers) {
+    ctx.globalAlpha = 1 - t;
+    ctx.strokeStyle = b.def.color; ctx.lineWidth = 6 * (1 - t);
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.radius + t * 150, 0, Math.PI * 2); ctx.stroke();
+    for (let i = 0; i < 28; i++) {
+      const a = i * Math.PI * 2 / 28, distance = t * (100 + (i % 5) * 30);
+      ctx.fillStyle = i % 3 ? b.def.color : '#fff';
+      ctx.beginPath(); ctx.arc(b.x + Math.cos(a) * distance, b.y + Math.sin(a) * distance + 65*t*t, (5 + i % 4) * (1 - t), 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  ctx.restore();
+}
 function updateTexts(dt) {
+  if(mireunIntro)return;
+  if(electionFrozenFrame)return;
+
+
+  if (state === 'over' && endSequence) return;
+  const realDt = dt;
+  if (balls.some(ownsSlowMotion)) dt *= 0.3;
+  for (const b of balls) {
+    if (b.buddhaEffect) {
+      b.buddhaEffect.age += dt;
+      if (b.buddhaEffect.fade !== null) {
+        b.buddhaEffect.fade -= dt;
+        if (b.buddhaEffect.fade <= 0) b.buddhaEffect = null;
+      }
+    }
+    if (b.pullupCry > 0) b.pullupCry = Math.max(0, b.pullupCry - dt);
+    if (b.pullupRecovery > 0) b.pullupRecovery = Math.max(0, b.pullupRecovery - dt);
+    if (b.pullupJump > 0) b.pullupJump = Math.max(0, b.pullupJump - dt);
+    if (b.dodgeTime > 0) b.dodgeTime = Math.max(0, b.dodgeTime - realDt);
+    if (b.darkAura > 0) b.darkAura = Math.max(0, b.darkAura - dt);
+    if (b.darkBurnFlash > 0) b.darkBurnFlash = Math.max(0, b.darkBurnFlash - dt);
+    if (b.bakeryBurnFlash > 0) b.bakeryBurnFlash = Math.max(0, b.bakeryBurnFlash - dt);
+    if (b.conureFlash > 0) b.conureFlash = Math.max(0, b.conureFlash - dt);
+    if (b.mireunHitFlash > 0) b.mireunHitFlash = Math.max(0, b.mireunHitFlash - dt);
+    if (b.darkMagic) {
+      b.darkMagic.remaining -= dt;
+      if (b.darkMagic.remaining <= 0) b.darkMagic = null;
+    }
+  }
+  // 경기가 끝나도 레이저 소멸 연출은 끝까지 재생한다.
+  for (const b of balls) {
+    if (!b.laser) continue;
+    b.laser.remaining -= dt;
+    if (b.laser.remaining <= 0) b.laser = null;
+  }
   for (const t of texts) { t.life -= dt; t.y -= 40 * dt; }
   texts = texts.filter(t => t.life > 0);
 }
@@ -832,31 +3046,83 @@ function drawArena() {
 }
 
 function drawBall(b) {
-  const { x, y, radius: r } = b;
+  if (endSequence?.losers.includes(b) && endSequence.age >= 1) return;
+  if (b.eliminatedByLaser) return;
+  if(b.def.name==='박성찬')b.img=loadImage(b.soccerDash?'images/balls/박성찬-profile.jpg':b.def.image);
+  if (b.def.name === '양시온') {
+    const attack = 6 + b.exerciseBonus;
+    b.img = loadImage(b.pullupCry > 0 ? 'images/balls/양시온철봉충돌.png'
+      : b.barActive ? 'images/balls/양시온철봉.jpg'
+      : attack >= 20 ? 'images/balls/양시온3차각성.png'
+      : attack >= 10 ? 'images/balls/양시온2차각성.png'
+      : b.def.image);
+  }
+  if (b.def.name === '이상권') b.img = loadImage(b.tripAir ? 'images/balls/이상권비행기.png' : b.def.image);
+  if (b.def.name === '이지원') b.img = loadImage(isUntouchable(b) ? 'images/balls/이지원회피.jpg' : b.def.image);
+  if (b.def.name === '정성연') {
+    b.img = loadImage(b.suspension > 0 ? 'images/balls/정성연출석정지.png' : b.def.image);
+  }
+  if (b.def.name === '문지성') {
+    const outfitIndex = b.outfitRoll > 0 ? Math.floor((1.5 - b.outfitRoll) * 10) % 3 : b.outfit;
+    b.img = loadImage(MOON_IMAGES[outfitIndex]);
+  }
+  const r = b.radius;
+  const dying = endSequence?.losers.includes(b) && endSequence.age < 1;
+  const shake=mireunShake(b);
+  const x = b.x + shake.x + (dying ? Math.sin(endSequence.age * 100) * (3 + endSequence.age * 3) : b.stun > 0 ? Math.sin(elapsed * 90) * 4 : 0);
+  const y = b.y + shake.y - travelLift(b) - mireunLift(b) - (b.jumpTime > 0 ? Math.sin((1 - b.jumpTime / 1) * Math.PI) * 125 : 0) - (b.pullupJump > 0 ? Math.sin((1 - b.pullupJump / 0.3) * Math.PI) * 10 : 0);
   ctx.save();
+  if (b.dodgeTime > 0) ctx.globalAlpha = Math.floor(b.dodgeTime * 18) % 2 ? 0.25 : 1;
   if (b.reviving > 0) ctx.globalAlpha = 0.35 + 0.35 * Math.sin(elapsed * 40);
 
-  ctx.shadowColor = b.def.color;
-  ctx.shadowBlur = 18;
+  if(b.mireun)ctx.globalAlpha=1;
+  else if(b.soccerDash)ctx.globalAlpha=.55;
+  else if(b.conureFlash>0||b.mireunHitFlash>0)ctx.globalAlpha*=.65;
+  const extendedSpin = b.kick && b.kick.spin && b.kick.spinDuration === 3.5;
+  ctx.shadowColor = extendedSpin ? '#eaffad' : b.def.color;
+  ctx.shadowBlur = extendedSpin ? 35 + 10 * Math.sin(elapsed * 14) : 18;
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
   ctx.fillStyle = b.def.color;
   ctx.fill();
   ctx.shadowBlur = 0;
 
-  if (b.img.complete && b.img.naturalWidth) {
+  const specialPortrait=electionState?.special&&['election','celebrate'].includes(electionState.phase);
+  const portrait=b.mireunUsed?loadImage('images/balls/김재윤 미련남.jpg'):specialPortrait?loadImage(b.def.name==='박건'?'images/balls/박건전교회장선거.jpg':'images/balls/정찬영전교회장선거.jpg'):electionState?.phase==='election'&&!electionState.special?loadImage(b===electionState.owner?'images/balls/정찬영 선거.jpg':'images/balls/정찬영 투표용지.jpg'):b.img;
+  if (portrait.complete && portrait.naturalWidth) {
     ctx.save();
     ctx.beginPath();
     ctx.arc(x, y, r - 2, 0, Math.PI * 2);
     ctx.clip();
-    ctx.drawImage(b.img, x - r + 2, y - r + 2, (r - 2) * 2, (r - 2) * 2);
+    if (b.def.name === '양시온' && electionState?.phase!=='election') {
+      const side = Math.min(portrait.naturalWidth, portrait.naturalHeight);
+      ctx.drawImage(portrait, (portrait.naturalWidth - side) / 2, (portrait.naturalHeight - side) * 0.65, side, side, x - r + 2, y - r + 2, (r - 2) * 2, (r - 2) * 2);
+    } else ctx.drawImage(portrait, x - r + 2, y - r + 2, (r - 2) * 2, (r - 2) * 2);
     ctx.restore();
   }
 
-  if (b.flash > 0) {
+  if (b.def.name === '박성웅') {
+    const guitar = loadImage('images/balls/박성웅일렉기타.png');
+    if (guitar.complete && guitar.naturalWidth) {
+      ctx.save();
+      ctx.translate(x + r * 0.82, y + r * 0.37);
+      ctx.rotate(-Math.PI / 8 - (b.guitarStrum > 0 ? 40 * Math.PI / 180 : 0));
+      ctx.scale(-1, 1);
+      const height = r * 1.65, width = height * guitar.naturalWidth / guitar.naturalHeight;
+      ctx.drawImage(guitar, -width / 2, -height / 2, width, height);
+      ctx.restore();
+    }
+  }
+  if (b.bakeryBurnFlash > 0) {
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, b.bakeryBurnFlash / 0.1) * 0.65;
+    ctx.fillStyle = '#ff2525';ctx.shadowColor = '#ff3420';ctx.shadowBlur = 18;
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.restore();
+  }
+  if (!b.mireun&&(b.flash > 0||b.mireunHitFlash>0)) {
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+    ctx.fillStyle = b.conureFlash>0||b.mireunHitFlash>0?'rgba(255,35,45,.55)':'rgba(255, 255, 255, 0.55)';
     ctx.fill();
   }
 
@@ -869,8 +3135,10 @@ function drawBall(b) {
 
   ctx.beginPath();
   ctx.arc(x, y, r - 1, 0, Math.PI * 2);
-  ctx.strokeStyle = b.def.color;
-  ctx.lineWidth = 3;
+  const golden = b.finisherUsed;
+  ctx.strokeStyle = golden ? '#ffd700' : b.def.color;
+  ctx.lineWidth = golden ? 6 : 3;
+  if (golden) { ctx.shadowColor = '#ffd700'; ctx.shadowBlur = 24; }
   ctx.stroke();
 
   // 광대뼈 영역 표시 (스킬 준비 시 밝게)
@@ -883,6 +3151,8 @@ function drawBall(b) {
     ctx.beginPath(); ctx.arc(x, y, r + 4, Math.PI - a, Math.PI + a); ctx.stroke();
   }
   ctx.restore();
+
+  drawFpsGun(b,x,y,r);
 
   if (b.coinMark) {
     const coin = loadImage('images/balls/고준형코인표식.png');
@@ -918,9 +3188,55 @@ function drawBall(b) {
 
 function drawProjectiles() {
   for (const p of projectiles) {
+    if (p.stickman) {
+      const age = p.walkAge || 0;
+      const frame = age < 1 ? 1 : Math.floor((age - 1) / 0.5) % 2 + 1;
+      const img = loadImage(`images/balls/김재윤졸라맨걸음${frame}.png`);
+      if (img.complete && img.naturalWidth) {
+        ctx.save(); ctx.translate(p.x, p.y);
+        if (age < 1) {
+          ctx.shadowColor = '#63ffae';
+          ctx.shadowBlur = 15 + 12 * Math.pow(Math.sin(age * Math.PI * 4), 2);
+        }
+        if (p.vx < 0) ctx.scale(-1, 1);
+        const height = 52, width = height * img.naturalWidth / img.naturalHeight;
+        ctx.drawImage(img, -width / 2, -height / 2, width, height); ctx.restore();
+      }
+      continue;
+    }
+    if (p.label) {
+      const sprite = loadImage('images/balls/문지성아쉬운플레이.png');
+      if (sprite.complete && sprite.naturalWidth) {
+        const width = 130;
+        const height = width * sprite.naturalHeight / sprite.naturalWidth;
+        ctx.drawImage(sprite, p.x - width / 2, p.y - height / 2, width, height);
+        continue;
+      }
+      ctx.save(); ctx.font = `bold ${px(16)} sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.strokeStyle = '#15111e'; ctx.lineWidth = 4; ctx.fillStyle = p.owner.def.color;
+      ctx.strokeText(p.label, p.x, p.y); ctx.fillText(p.label, p.x, p.y); ctx.restore(); continue;
+    }
+    if (p.emoji) {
+      ctx.save(); ctx.font = `${p.r * 2}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(p.emoji, p.x, p.y); ctx.restore(); continue;
+    }
+    if(p.fpsBullet){
+      const bullet=loadImage(p.img);
+      if(bullet.complete&&bullet.naturalWidth){
+        ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.atan2(p.vy,p.vx));
+        ctx.drawImage(bullet,bullet.naturalWidth*.08,bullet.naturalHeight*.36,bullet.naturalWidth*.84,bullet.naturalHeight*.28,-p.r*1.8,-p.r*.6,p.r*3.6,p.r*1.2);ctx.restore();continue;
+      }
+    }
     const img = loadImage(p.img);
     if (img.complete && img.naturalWidth) {
-      ctx.drawImage(img, p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
+      if (p.rotateWithVelocity) {
+        ctx.save(); ctx.translate(p.x, p.y);
+        ctx.rotate(Math.atan2(p.vy, p.vx) + Math.PI / 2);
+        const height = p.r * 2.6;
+        const width = height * img.naturalWidth / img.naturalHeight;
+        ctx.drawImage(img, -width / 2, -height / 2, width, height);
+        ctx.restore();
+      } else ctx.drawImage(img, p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
     } else {
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
@@ -958,33 +3274,208 @@ function drawOverlay(title, sub, color) {
   ctx.fillText(sub, SIZE / 2, SIZE / 2 + 30 * fontScale);
 }
 
+function drawKwonLaser(b) {
+  if (!b.laser) return;
+  const l = b.laser;
+  const fade = Math.min(1, l.remaining / 0.3);
+  ctx.save();
+  ctx.globalAlpha = fade;
+  ctx.lineCap = 'round';
+  ctx.shadowColor = '#ffd700'; ctx.shadowBlur = 35;
+  for (const [width, color] of [[30, 'rgba(255, 165, 0, 0.4)'], [15, '#ffd700'], [5, '#fffde5']]) {
+    ctx.strokeStyle = color; ctx.lineWidth = width;
+    ctx.beginPath(); ctx.moveTo(l.x, l.y); ctx.lineTo(l.targetX, l.targetY); ctx.stroke();
+  }
+  const progress = 1 - l.remaining / 0.8;
+  ctx.fillStyle = '#fff3ad';
+  ctx.beginPath(); ctx.arc(l.targetX, l.targetY, 15 + progress * 55, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#ffd700'; ctx.lineWidth = 3;
+  for (let i = 0; i < 16; i++) {
+    const angle = i * Math.PI * 2 / 16;
+    const radius = 25 + progress * 100;
+    ctx.beginPath();
+    ctx.moveTo(l.targetX + Math.cos(angle) * radius, l.targetY + Math.sin(angle) * radius);
+    ctx.lineTo(l.targetX + Math.cos(angle) * (radius + 18), l.targetY + Math.sin(angle) * (radius + 18)); ctx.stroke();
+  }
+  ctx.shadowBlur = 0;
+  drawKwonGold(KWON_GOLD_FINISHER, SIZE / 2, SIZE / 2 - 100, 335, 128);
+  ctx.restore();
+}
+
+function drawSuspensionLock(b) {
+  if (!(b.suspension > 0) || b.hp <= 0) return;
+  const radius = b.radius * 0.42;
+  ctx.save();
+  ctx.translate(b.x - b.radius * 0.6, b.y + b.radius * 0.6);
+  ctx.fillStyle = '#342332'; ctx.strokeStyle = '#ffc1d8'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.font = `${Math.round(radius * 1.5)}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('🔒', 0, 0); ctx.restore();
+}
+
+function drawBuddhaRevival() {
+  const img = loadImage('images/balls/고준형불교추천배경.png');
+  for (const b of balls) {
+    const effect = b.buddhaEffect;
+    if (!effect) continue;
+    const fade = effect.fade === null ? 1 : Math.max(0, effect.fade / 0.8);
+    const entry = Math.min(1, effect.age / 0.12);
+    ctx.save();
+    ctx.globalAlpha = 0.8 * entry * fade;
+    if (img.complete && img.naturalWidth) {
+      const zoom = 1 + Math.max(0, 1 - effect.age / 0.5) * 0.12;
+      const width = SIZE * zoom;
+      ctx.drawImage(img, (SIZE - width) / 2, (SIZE - width) / 2, width, width);
+    }
+    ctx.globalAlpha = Math.max(0, 1 - effect.age / 0.25) * fade * 0.75;
+    ctx.fillStyle = '#fff1aa'; ctx.fillRect(0, 0, SIZE, SIZE);
+    ctx.globalAlpha = fade * Math.max(0, 1 - effect.age / 0.8);
+    ctx.strokeStyle = '#ffdf78'; ctx.lineWidth = 8; ctx.shadowColor = '#ffcd48'; ctx.shadowBlur = 30;
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.radius + effect.age * 420, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+  }
+}
+
+function drawFpsUpgradeAnnouncement(){
+  const notices=balls.filter(b=>b.def.name==='구동우'&&b.fpsUpgradeFlash>0&&b.fpsUpgradeShown);
+  notices.forEach((b,i)=>{
+    const cx=SIZE/2,cy=SIZE/2+(i-(notices.length-1)/2)*170;
+    const img=loadImage('images/balls/구동우'+FPS_GEAR[b.fpsUpgradeShown]+'.png');
+    const accent={computer:'#38cfff',mouse:'#bd72ff',keyboard:'#ffd35b'}[b.fpsUpgradeShown];
+    ctx.save();ctx.globalAlpha=.75*Math.max(0,Math.min(1,(.95-b.fpsUpgradeFlash)/.15,b.fpsUpgradeFlash/.2));
+    ctx.beginPath();ctx.moveTo(cx-174,cy-90);ctx.lineTo(cx+190,cy-90);ctx.lineTo(cx+190,cy+74);ctx.lineTo(cx+174,cy+90);ctx.lineTo(cx-190,cy+90);ctx.lineTo(cx-190,cy-74);ctx.closePath();
+    ctx.fillStyle='rgba(8,18,30,.48)';ctx.fill();
+    ctx.strokeStyle=accent;ctx.shadowColor=accent;ctx.shadowBlur=12;ctx.lineWidth=2;ctx.stroke();ctx.shadowBlur=0;
+    ctx.save();ctx.clip();ctx.strokeStyle='rgba(180,220,255,.1)';ctx.lineWidth=1;
+    for(let line=cy-90;line<cy+90;line+=6){ctx.beginPath();ctx.moveTo(cx-190,line);ctx.lineTo(cx+190,line);ctx.stroke();}ctx.restore();
+    ctx.fillStyle=accent;ctx.fillRect(cx-170,cy-73,5,28);ctx.fillRect(cx+165,cy+45,5,28);
+    if(img.complete&&img.naturalWidth)ctx.drawImage(img,cx-54,cy-84,108,108);
+    ctx.font='bold 25px "Malgun Gothic", sans-serif';ctx.textAlign='center';ctx.fillStyle=accent;ctx.shadowColor=accent;ctx.shadowBlur=7;
+    ctx.fillText('구동우 '+FPS_GEAR[b.fpsUpgradeShown]+' 강화',cx,cy+43);
+    ctx.font='bold 16px "Malgun Gothic", sans-serif';ctx.fillStyle='#eafff9';ctx.shadowBlur=0;
+    const description={keyboard:'연사속도 증가 및 빠른 장전',mouse:'에임봇, 탄속 증가',computer:'사거리 증가'};
+    ctx.fillText(description[b.fpsUpgradeShown],cx,cy+72);ctx.restore();
+  });
+}
 function render() {
   fontScale = Math.min(1.8, Math.max(1, SIZE / (canvas.clientWidth || SIZE)));
+  const evadingReaders = balls.filter(b => b.def.name === '이지원' && isUntouchable(b) && b.hp > 0);
+  const chaosStrength = Math.min(1, Math.max(0, ...evadingReaders.map(b => b.dodgeTime)) / 0.6);
   drawArena();
-  balls.forEach(b => b.def.drawUnder && b.def.drawUnder(b));
-  balls.forEach(drawBall);
+  if(soccerDashFade>0){
+    const speedBackground=loadImage('images/balls/푸른질주배경.png');
+    if(speedBackground.complete&&speedBackground.naturalWidth){ctx.save();ctx.globalAlpha=.75*soccerDashFade;ctx.drawImage(speedBackground,0,0,SIZE,SIZE);ctx.restore();}
+  }
+  if(electionState?.phase==='election'||electionState?.phase==='celebrate'){
+    const ballot=loadImage(electionState.special?'images/balls/정찬영 출마.jpg':'images/balls/정찬영투표함.png');
+    if(ballot.complete&&ballot.naturalWidth)ctx.drawImage(ballot,0,0,SIZE,SIZE);
+  }
+  drawBuddhaRevival();
+  if (chaosStrength > 0) {
+    const chaos = loadImage('images/balls/이지원회피혼돈.png');
+    if (chaos.complete && chaos.naturalWidth) {
+      ctx.save(); ctx.globalAlpha = chaosStrength * 0.5;
+      ctx.drawImage(chaos, 0, 0, SIZE, SIZE); ctx.restore();
+    }
+  }
+  ctx.save();
+  if (chaosStrength > 0) ctx.filter = `saturate(${1 - chaosStrength * 0.9}) brightness(${1 - chaosStrength * 0.2})`;
+  drawArtGround();
+  drawQuakes();
+  drawStudyImpacts();
+  const electionOwner=electionState?.owner||electionResult?.owner;
+  balls.forEach(b => {
+    if((electionState?.special||electionResult?.special)&&b.def.name==='박건')return;
+    if(electionOwner&&b.side!==electionOwner.side&&['구동우','문지성'].includes(b.def.name))return;
+    if(b.def.drawUnder)b.def.drawUnder(b);
+  });
+  drawFpsMagazines();
+  drawArt();
+  drawAmplifiers();
+  drawBakery();
+  drawMusicWaves();
+  drawReadingBooks();
+  drawGlass();
+  if(electionState?.special&&['election','celebrate'].includes(electionState.phase)){
+    const box=loadImage('images/balls/전교회장투표함.png');
+    const {x,y}=electionState.ballot;
+    ctx.save();
+    if(electionState.phase==='election'){
+      ctx.strokeStyle='#ffd56a';ctx.shadowColor='#ffcf40';ctx.shadowBlur=24;ctx.lineWidth=3;
+      for(let i=0;i<3;i++){const pulse=((electionState.voteAge||0)*.8+i/3)%1;ctx.globalAlpha=.7*(1-pulse);ctx.beginPath();ctx.arc(x,y,26+pulse*30,0,Math.PI*2);ctx.stroke();}
+      ctx.globalAlpha=1;
+    }
+    if(box.complete&&box.naturalWidth)ctx.drawImage(box,x-24,y-24,48,48);ctx.restore();
+  }
+  balls.forEach(drawPullupEquipment);
+  drawSoccerFoods();
+  balls.filter(b => !evadingReaders.includes(b) && !(b.jumpTime > 0) && !b.tripAir).forEach(drawBall);
+  balls.forEach(drawKick);
+  balls.forEach(drawMoonOutfit);
+  balls.forEach(drawArtist);
+  balls.forEach(drawPerformer);
+  if(electionState?.special&&['election','celebrate'].includes(electionState.phase)){
+    for(const b of balls){
+      const golden=electionState.phase==='celebrate'&&electionState.winner===b;
+      const age=golden?2-electionState.remaining:elapsed;
+      const color=golden?'#ffd54b':b.def.name==='박건'?'#4b9dff':'#59ee8c';
+      ctx.save();ctx.strokeStyle=color;ctx.shadowColor=color;ctx.shadowBlur=golden?36:20;ctx.lineWidth=golden?5:3;
+      for(let i=0;i<2;i++){ctx.globalAlpha=(golden?.85:.6)-i*.15;ctx.beginPath();ctx.arc(b.x,b.y,b.radius+8+i*8+Math.sin(age*8)*2,0,Math.PI*2);ctx.stroke();}
+      if(golden){ctx.fillStyle='rgba(255,213,75,.22)';ctx.beginPath();ctx.arc(b.x,b.y,b.radius,0,Math.PI*2);ctx.fill();}
+      ctx.restore();
+    }
+  }
+  for(const b of balls){if(!(b.presidentBuff>0))continue;ctx.save();ctx.strokeStyle=b.def.name==='박건'?'#b99aff':'#7dffb4';ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=24;ctx.lineWidth=4;for(let i=0;i<2;i++){ctx.globalAlpha=.65-i*.2;ctx.beginPath();ctx.arc(b.x,b.y,b.radius+8+i*9,elapsed*(i?-1:1),elapsed*(i?-1:1)+Math.PI*1.65);ctx.stroke();}ctx.restore();}
+  balls.forEach(drawExercise);
+  balls.filter(b => !evadingReaders.includes(b)).forEach(drawReader);
+  balls.forEach(drawSuspensionLock);
+  balls.forEach(drawKwonStatus);
   drawProjectiles();
+  drawSoccer();
+  drawConures();
+
   drawTexts();
+  ctx.restore();
+  evadingReaders.forEach(b => { drawBall(b); drawReader(b); });
+  balls.filter(b => b.jumpTime > 0 || b.tripAir).forEach(drawBall);
+  drawElectionBuffTimers();
+  ovens.filter(o => !o.landed).forEach(drawOvenBody);
+  drawDefeatBurst();
+  drawHackScene();
+  drawFpsUpgradeAnnouncement();
+  drawElection();
+  drawMireun();
+
 
   if (state === 'ready') {
     drawOverlay('Ball Fight UKD', '탭하거나 시작 버튼을 눌러 시작');
-  } else if (state === 'over') {
+  } else if (state === 'paused') {
+    drawOverlay('일시 정지', '시작을 누르면 이어서 진행해요');
+  } else if (state === 'over' && (!endSequence || endSequence.age >= 2)) {
     if (winner) drawOverlay(`${winner.def.name} 승리!`, `${elapsed.toFixed(1)}초 · 탭해서 다시 시작`, winner.def.color);
     else drawOverlay('무승부!', '탭해서 다시 시작');
   }
+
+  balls.forEach(drawKwonLaser);
 
   balls.forEach((b, i) => {
     const fill = document.getElementById(`hp${i}`);
     fill.style.width = `${(Math.max(0, b.hp) / b.maxHp) * 100}%`;
     fill.style.background = b.def.color;
+    const hudFilter = chaosStrength > 0 && !evadingReaders.includes(b) ? `saturate(${1 - chaosStrength * 0.9}) brightness(${1 - chaosStrength * 0.2})` : '';
+    fill.style.filter = hudFilter;
+    document.getElementById(`name${i}`).style.filter = hudFilter;
     document.getElementById(`name${i}`).innerHTML =
       `${b.def.name}<small>${Math.ceil(Math.max(0, b.hp))} / ${b.maxHp}</small>`;
+
   });
   document.getElementById('timer').textContent = `${elapsed.toFixed(1)}s`;
 
-  const label = { ready: '시작', running: '경기 중…', over: '다시 시작' }[state];
+  const ending = endSequence && endSequence.age < 2;
+  const label = ending ? '경기 종료 중…' : { ready: '시작', running: '게임 정지', paused:'시작', over: '다시 시작' }[state];
   if (startBtn.textContent !== label) startBtn.textContent = label;
-  startBtn.disabled = state === 'running';
+  startBtn.disabled = !!ending;
+  document.getElementById('stop').hidden=state!=='paused';
 }
 
 function renderCards() {
@@ -992,7 +3483,7 @@ function renderCards() {
     const d = CHARACTERS[p];
     return `
     <div class="card">
-      <h3 style="color:${d.color}"><img src="${d.image}" alt="">${d.name}</h3>
+      <h3 style="color:${d.color}">${d.image ? `<img src="${d.image}" alt="">` : '● '}${d.name}</h3>
       <dl>
         <dt>HP</dt><dd>${d.hp}</dd>
         <dt>속도</dt><dd>${d.speed}</dd>
@@ -1001,7 +3492,7 @@ function renderCards() {
         <dt>스킬</dt><dd>${d.skills.map(s => `
           <p><b>${s.name}</b> <span class="cool">${s.cooldown ? `쿨타임 ${s.cooldown}초` : '조건 발동'}</span><br>${s.desc}</p>`).join('')}
         </dd>
-        <dt>특성</dt><dd><b>${d.trait.name}</b> — ${d.trait.desc}</dd>
+        ${d.trait ? '<dt>특성</dt><dd><b>'+d.trait.name+'</b> — '+d.trait.desc+'</dd>' : ''}
       </dl>
     </div>`;
   }).join('');
@@ -1010,38 +3501,83 @@ function renderCards() {
 // ---------- 캐릭터 선택 ----------
 
 function setPickersEnabled(on) {
-  [0, 1].forEach(i => { document.getElementById(`pick${i}`).disabled = !on; });
+  [0, 1].forEach(i => {
+    document.getElementById(`pick${i}`).disabled = !on;
+    document.getElementById(`pickerToggle${i}`).disabled = !on;
+    if (!on) closePicker(i);
+  });
+}
+function closePicker(i) {
+  document.getElementById(`pickerOptions${i}`).hidden = true;
+  document.getElementById(`pickerToggle${i}`).setAttribute('aria-expanded', 'false');
+}
+function refreshPicker(i) {
+  document.getElementById(`pickerToggle${i}`).textContent = CHARACTERS[picks[i]].name + ' ▾';
+  document.getElementById(`pickerOptions${i}`).innerHTML = CHARACTERS.map((c,index)=>({...c,index})).sort((a,b)=>a.name.localeCompare(b.name,'ko')).map(c=>`<button type="button" data-character="${c.index}" aria-pressed="${c.index===picks[i]}">${c.name}</button>`).join('');
 }
 
 [0, 1].forEach(i => {
   const sel = document.getElementById(`pick${i}`);
-  sel.innerHTML = CHARACTERS.map((c, k) => `<option value="${k}">${c.name}</option>`).join('');
+  sel.innerHTML = CHARACTERS.map((c, k) => ({ name: c.name, index: k }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'ko'))
+    .map(c => `<option value="${c.index}">${c.name}</option>`).join('');
   sel.value = picks[i];
+  refreshPicker(i);
+  const toggle = document.getElementById(`pickerToggle${i}`), options = document.getElementById(`pickerOptions${i}`);
+  toggle.addEventListener('click', () => {
+    const opening = options.hidden;
+    [0,1].forEach(closePicker);
+    options.hidden = !opening;
+    toggle.setAttribute('aria-expanded', String(opening));
+  });
+  options.addEventListener('click', event => {
+    const button = event.target.closest('button[data-character]');
+    if (!button || sel.disabled) return;
+    picks[i] = +button.dataset.character; sel.value = picks[i];
+    closePicker(i); refreshPicker(i);
+    state = 'ready'; reset(); renderCards(); toggle.focus();
+  });
   sel.addEventListener('change', () => {
     picks[i] = +sel.value;
+    refreshPicker(i);
     sel.blur();
     state = 'ready';
     reset();
     renderCards();
   });
 });
+document.addEventListener('click', event => { if (!event.target.closest('.character-picker')) [0,1].forEach(closePicker); });
+document.addEventListener('keydown', event => { if (event.key === 'Escape') [0,1].forEach(closePicker); });
 
 function loop(now) {
   const dt = Math.min((now - lastTime) / 1000, 1 / 30);
   lastTime = now;
   if (state === 'running') update(dt);
-  updateTexts(dt);
+  if(state!=='paused'){
+    updateEndSequence(dt);
+    updateTexts(dt);
+    updateSoccerBackground(dt);
+  }
   render();
   requestAnimationFrame(loop);
 }
 
 function startGame() {
   sound.unlock();
-  if (state === 'running') return;
+  if (state === 'running' || (endSequence && endSequence.age < 2)) return;
+  const resuming=state==='paused';
   if (state === 'over') reset();
   state = 'running';
   setPickersEnabled(false);
-  sound.play('start');
+  if(!resuming)sound.play('start');
+}
+function toggleGame(){
+  if(state==='running'){state='paused';return;}
+  startGame();
+}
+function stopGame(){
+  if(state!=='paused')return;
+  state='ready';reset();setPickersEnabled(true);
 }
 
 const muteBtn = document.getElementById('mute');
@@ -1059,12 +3595,13 @@ muteBtn.addEventListener('click', () => {
 renderMute();
 
 const startBtn = document.getElementById('start');
-startBtn.addEventListener('click', startGame);
+startBtn.addEventListener('click', toggleGame);
+document.getElementById('stop').addEventListener('click', stopGame);
 canvas.addEventListener('pointerdown', startGame);
 document.addEventListener('keydown', e => {
   if (e.code !== 'Space') return;
   e.preventDefault();
-  startGame();
+  toggleGame();
 });
 
 reset();
@@ -1073,3 +3610,32 @@ requestAnimationFrame(now => { lastTime = now; loop(now); });
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

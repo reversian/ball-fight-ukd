@@ -1,0 +1,2608 @@
+{
+  "matches": 34200,
+  "rows": [
+    {
+      "rank": 1,
+      "name": "양서지",
+      "matches": 3600,
+      "wins": 2595,
+      "losses": 1005,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 72.08333333333333,
+      "tier": "S",
+      "best": [
+        {
+          "opponent": "이권율",
+          "rate": 99.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "함태준",
+          "rate": 94,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 87.5,
+          "timeouts": 0
+        }
+      ],
+      "worst": [
+        {
+          "opponent": "허현",
+          "rate": 54,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 56.00000000000001,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김지성",
+          "rate": 57.49999999999999,
+          "timeouts": 0
+        }
+      ],
+      "matchups": [
+        {
+          "opponent": "이권율",
+          "rate": 99.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "함태준",
+          "rate": 94,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 87.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "고준형",
+          "rate": 85,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 82,
+          "timeouts": 0
+        },
+        {
+          "opponent": "구동우",
+          "rate": 78,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김재윤",
+          "rate": 76.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 72,
+          "timeouts": 0
+        },
+        {
+          "opponent": "문지성",
+          "rate": 71,
+          "timeouts": 0
+        },
+        {
+          "opponent": "권혁주",
+          "rate": 70,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박성웅",
+          "rate": 67,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양시온",
+          "rate": 66,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 62,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정성연",
+          "rate": 60.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정준우",
+          "rate": 59,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김지성",
+          "rate": 57.49999999999999,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 56.00000000000001,
+          "timeouts": 0
+        },
+        {
+          "opponent": "허현",
+          "rate": 54,
+          "timeouts": 0
+        }
+      ]
+    },
+    {
+      "rank": 2,
+      "name": "박건",
+      "matches": 3600,
+      "wins": 2554,
+      "losses": 1046,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 70.94444444444444,
+      "tier": "S",
+      "best": [
+        {
+          "opponent": "이권율",
+          "rate": 98,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 97,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박성웅",
+          "rate": 94.5,
+          "timeouts": 0
+        }
+      ],
+      "worst": [
+        {
+          "opponent": "함태준",
+          "rate": 26.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정성연",
+          "rate": 43.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양서지",
+          "rate": 44,
+          "timeouts": 0
+        }
+      ],
+      "matchups": [
+        {
+          "opponent": "이권율",
+          "rate": 98,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 97,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박성웅",
+          "rate": 94.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 94,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 90,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양시온",
+          "rate": 88.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 87.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김재윤",
+          "rate": 82.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "문지성",
+          "rate": 72,
+          "timeouts": 0
+        },
+        {
+          "opponent": "허현",
+          "rate": 69.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "권혁주",
+          "rate": 65,
+          "timeouts": 0
+        },
+        {
+          "opponent": "고준형",
+          "rate": 61,
+          "timeouts": 0
+        },
+        {
+          "opponent": "구동우",
+          "rate": 59.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정준우",
+          "rate": 55.00000000000001,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김지성",
+          "rate": 49,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양서지",
+          "rate": 44,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정성연",
+          "rate": 43.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "함태준",
+          "rate": 26.5,
+          "timeouts": 0
+        }
+      ]
+    },
+    {
+      "rank": 3,
+      "name": "정성연",
+      "matches": 3600,
+      "wins": 2173,
+      "losses": 1427,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 60.36111111111111,
+      "tier": "A",
+      "best": [
+        {
+          "opponent": "이권율",
+          "rate": 93,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 89,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양시온",
+          "rate": 80,
+          "timeouts": 0
+        }
+      ],
+      "worst": [
+        {
+          "opponent": "박성웅",
+          "rate": 35.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "허현",
+          "rate": 36.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "구동우",
+          "rate": 38,
+          "timeouts": 0
+        }
+      ],
+      "matchups": [
+        {
+          "opponent": "이권율",
+          "rate": 93,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 89,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양시온",
+          "rate": 80,
+          "timeouts": 0
+        },
+        {
+          "opponent": "함태준",
+          "rate": 77.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김지성",
+          "rate": 75.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "권혁주",
+          "rate": 65.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 65.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 65,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김재윤",
+          "rate": 62.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "문지성",
+          "rate": 60,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 56.49999999999999,
+          "timeouts": 0
+        },
+        {
+          "opponent": "고준형",
+          "rate": 51.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 51,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정준우",
+          "rate": 44.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양서지",
+          "rate": 39.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "구동우",
+          "rate": 38,
+          "timeouts": 0
+        },
+        {
+          "opponent": "허현",
+          "rate": 36.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박성웅",
+          "rate": 35.5,
+          "timeouts": 0
+        }
+      ]
+    },
+    {
+      "rank": 4,
+      "name": "권혁주",
+      "matches": 3600,
+      "wins": 2130,
+      "losses": 1470,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 59.166666666666664,
+      "tier": "B",
+      "best": [
+        {
+          "opponent": "함태준",
+          "rate": 89.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 86.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이권율",
+          "rate": 86,
+          "timeouts": 0
+        }
+      ],
+      "worst": [
+        {
+          "opponent": "양서지",
+          "rate": 30,
+          "timeouts": 0
+        },
+        {
+          "opponent": "고준형",
+          "rate": 34,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정성연",
+          "rate": 34.5,
+          "timeouts": 0
+        }
+      ],
+      "matchups": [
+        {
+          "opponent": "함태준",
+          "rate": 89.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 86.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이권율",
+          "rate": 86,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 71,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 71,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 68,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양시온",
+          "rate": 66,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박성웅",
+          "rate": 66,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김지성",
+          "rate": 62.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "허현",
+          "rate": 61,
+          "timeouts": 0
+        },
+        {
+          "opponent": "문지성",
+          "rate": 53,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정준우",
+          "rate": 52.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김재윤",
+          "rate": 51.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "구동우",
+          "rate": 47,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 35,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정성연",
+          "rate": 34.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "고준형",
+          "rate": 34,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양서지",
+          "rate": 30,
+          "timeouts": 0
+        }
+      ]
+    },
+    {
+      "rank": 5,
+      "name": "고준형",
+      "matches": 3600,
+      "wins": 2077,
+      "losses": 1518,
+      "draws": 1,
+      "timeouts": 4,
+      "winRate": 57.69444444444445,
+      "tier": "B",
+      "best": [
+        {
+          "opponent": "이권율",
+          "rate": 99.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 83.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 81.5,
+          "timeouts": 0
+        }
+      ],
+      "worst": [
+        {
+          "opponent": "양서지",
+          "rate": 15,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 39,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박성웅",
+          "rate": 39.5,
+          "timeouts": 0
+        }
+      ],
+      "matchups": [
+        {
+          "opponent": "이권율",
+          "rate": 99.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 83.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 81.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 81,
+          "timeouts": 0
+        },
+        {
+          "opponent": "권혁주",
+          "rate": 66,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김재윤",
+          "rate": 59.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양시온",
+          "rate": 59.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "문지성",
+          "rate": 59,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 56.49999999999999,
+          "timeouts": 4
+        },
+        {
+          "opponent": "함태준",
+          "rate": 56.00000000000001,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정준우",
+          "rate": 54.50000000000001,
+          "timeouts": 0
+        },
+        {
+          "opponent": "허현",
+          "rate": 52.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정성연",
+          "rate": 48.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "구동우",
+          "rate": 46,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김지성",
+          "rate": 41.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박성웅",
+          "rate": 39.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 39,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양서지",
+          "rate": 15,
+          "timeouts": 0
+        }
+      ]
+    },
+    {
+      "rank": 6,
+      "name": "구동우",
+      "matches": 3600,
+      "wins": 2058,
+      "losses": 1540,
+      "draws": 0,
+      "timeouts": 2,
+      "winRate": 57.166666666666664,
+      "tier": "B",
+      "best": [
+        {
+          "opponent": "이권율",
+          "rate": 93.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "함태준",
+          "rate": 86.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 85.5,
+          "timeouts": 0
+        }
+      ],
+      "worst": [
+        {
+          "opponent": "이지원",
+          "rate": 3,
+          "timeouts": 2
+        },
+        {
+          "opponent": "양서지",
+          "rate": 22,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정준우",
+          "rate": 29.5,
+          "timeouts": 0
+        }
+      ],
+      "matchups": [
+        {
+          "opponent": "이권율",
+          "rate": 93.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "함태준",
+          "rate": 86.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 85.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 76.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 74,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김재윤",
+          "rate": 72,
+          "timeouts": 0
+        },
+        {
+          "opponent": "문지성",
+          "rate": 63.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김지성",
+          "rate": 62.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정성연",
+          "rate": 62,
+          "timeouts": 0
+        },
+        {
+          "opponent": "허현",
+          "rate": 60,
+          "timeouts": 0
+        },
+        {
+          "opponent": "고준형",
+          "rate": 54,
+          "timeouts": 0
+        },
+        {
+          "opponent": "권혁주",
+          "rate": 53,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양시온",
+          "rate": 48,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박성웅",
+          "rate": 43,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 40.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정준우",
+          "rate": 29.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양서지",
+          "rate": 22,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 3,
+          "timeouts": 2
+        }
+      ]
+    },
+    {
+      "rank": 7,
+      "name": "박성웅",
+      "matches": 3600,
+      "wins": 1943,
+      "losses": 1656,
+      "draws": 1,
+      "timeouts": 0,
+      "winRate": 53.97222222222222,
+      "tier": "B",
+      "best": [
+        {
+          "opponent": "이권율",
+          "rate": 98,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 97,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 93,
+          "timeouts": 0
+        }
+      ],
+      "worst": [
+        {
+          "opponent": "김재윤",
+          "rate": 4,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김지성",
+          "rate": 4.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 5.5,
+          "timeouts": 0
+        }
+      ],
+      "matchups": [
+        {
+          "opponent": "이권율",
+          "rate": 98,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 97,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 93,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양시온",
+          "rate": 74,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 66,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정성연",
+          "rate": 64.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "함태준",
+          "rate": 64,
+          "timeouts": 0
+        },
+        {
+          "opponent": "고준형",
+          "rate": 60.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "문지성",
+          "rate": 59.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "구동우",
+          "rate": 56.99999999999999,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정준우",
+          "rate": 54.50000000000001,
+          "timeouts": 0
+        },
+        {
+          "opponent": "허현",
+          "rate": 54,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 48.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "권혁주",
+          "rate": 34,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양서지",
+          "rate": 33,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 5.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김지성",
+          "rate": 4.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김재윤",
+          "rate": 4,
+          "timeouts": 0
+        }
+      ]
+    },
+    {
+      "rank": 8,
+      "name": "문지성",
+      "matches": 3600,
+      "wins": 1920,
+      "losses": 1680,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 53.333333333333336,
+      "tier": "B",
+      "best": [
+        {
+          "opponent": "이권율",
+          "rate": 91,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 77,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 70.5,
+          "timeouts": 0
+        }
+      ],
+      "worst": [
+        {
+          "opponent": "박건",
+          "rate": 28.000000000000004,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양서지",
+          "rate": 28.999999999999996,
+          "timeouts": 0
+        },
+        {
+          "opponent": "구동우",
+          "rate": 36.5,
+          "timeouts": 0
+        }
+      ],
+      "matchups": [
+        {
+          "opponent": "이권율",
+          "rate": 91,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 77,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 70.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 69.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 69.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양시온",
+          "rate": 67,
+          "timeouts": 0
+        },
+        {
+          "opponent": "허현",
+          "rate": 55.50000000000001,
+          "timeouts": 0
+        },
+        {
+          "opponent": "함태준",
+          "rate": 52.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김재윤",
+          "rate": 52,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김지성",
+          "rate": 47.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "권혁주",
+          "rate": 47,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정준우",
+          "rate": 46,
+          "timeouts": 0
+        },
+        {
+          "opponent": "고준형",
+          "rate": 41,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박성웅",
+          "rate": 40.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정성연",
+          "rate": 40,
+          "timeouts": 0
+        },
+        {
+          "opponent": "구동우",
+          "rate": 36.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양서지",
+          "rate": 28.999999999999996,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 28.000000000000004,
+          "timeouts": 0
+        }
+      ]
+    },
+    {
+      "rank": 9,
+      "name": "정준우",
+      "matches": 3600,
+      "wins": 1853,
+      "losses": 1746,
+      "draws": 1,
+      "timeouts": 0,
+      "winRate": 51.47222222222222,
+      "tier": "B",
+      "best": [
+        {
+          "opponent": "이권율",
+          "rate": 92.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 73,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 70.5,
+          "timeouts": 0
+        }
+      ],
+      "worst": [
+        {
+          "opponent": "이지원",
+          "rate": 6,
+          "timeouts": 0
+        },
+        {
+          "opponent": "함태준",
+          "rate": 31.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김지성",
+          "rate": 33,
+          "timeouts": 0
+        }
+      ],
+      "matchups": [
+        {
+          "opponent": "이권율",
+          "rate": 92.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 73,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 70.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "구동우",
+          "rate": 70.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김재윤",
+          "rate": 62.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "허현",
+          "rate": 57.99999999999999,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정성연",
+          "rate": 55.50000000000001,
+          "timeouts": 0
+        },
+        {
+          "opponent": "문지성",
+          "rate": 54,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 51.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "권혁주",
+          "rate": 47.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "고준형",
+          "rate": 45.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 45,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박성웅",
+          "rate": 45,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양시온",
+          "rate": 44,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양서지",
+          "rate": 41,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김지성",
+          "rate": 33,
+          "timeouts": 0
+        },
+        {
+          "opponent": "함태준",
+          "rate": 31.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 6,
+          "timeouts": 0
+        }
+      ]
+    },
+    {
+      "rank": 10,
+      "name": "허현",
+      "matches": 3600,
+      "wins": 1838,
+      "losses": 1759,
+      "draws": 0,
+      "timeouts": 3,
+      "winRate": 51.05555555555556,
+      "tier": "B",
+      "best": [
+        {
+          "opponent": "이권율",
+          "rate": 87.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 69,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 68.5,
+          "timeouts": 3
+        }
+      ],
+      "worst": [
+        {
+          "opponent": "박건",
+          "rate": 30.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 33.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "권혁주",
+          "rate": 39,
+          "timeouts": 0
+        }
+      ],
+      "matchups": [
+        {
+          "opponent": "이권율",
+          "rate": 87.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 69,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 68.5,
+          "timeouts": 3
+        },
+        {
+          "opponent": "양시온",
+          "rate": 68,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정성연",
+          "rate": 63.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "함태준",
+          "rate": 56.99999999999999,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 54.50000000000001,
+          "timeouts": 0
+        },
+        {
+          "opponent": "고준형",
+          "rate": 47.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양서지",
+          "rate": 46,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박성웅",
+          "rate": 46,
+          "timeouts": 0
+        },
+        {
+          "opponent": "문지성",
+          "rate": 44.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정준우",
+          "rate": 42,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김지성",
+          "rate": 41.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김재윤",
+          "rate": 40.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "구동우",
+          "rate": 40,
+          "timeouts": 0
+        },
+        {
+          "opponent": "권혁주",
+          "rate": 39,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 33.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 30.5,
+          "timeouts": 0
+        }
+      ]
+    },
+    {
+      "rank": 11,
+      "name": "김재윤",
+      "matches": 3600,
+      "wins": 1827,
+      "losses": 1771,
+      "draws": 0,
+      "timeouts": 2,
+      "winRate": 50.74999999999999,
+      "tier": "B",
+      "best": [
+        {
+          "opponent": "박성웅",
+          "rate": 96,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이권율",
+          "rate": 87.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 78.5,
+          "timeouts": 0
+        }
+      ],
+      "worst": [
+        {
+          "opponent": "박건",
+          "rate": 17.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양서지",
+          "rate": 23.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 27,
+          "timeouts": 2
+        }
+      ],
+      "matchups": [
+        {
+          "opponent": "박성웅",
+          "rate": 96,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이권율",
+          "rate": 87.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 78.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 64.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "허현",
+          "rate": 59.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 59.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양시온",
+          "rate": 55.50000000000001,
+          "timeouts": 0
+        },
+        {
+          "opponent": "함태준",
+          "rate": 52.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김지성",
+          "rate": 52,
+          "timeouts": 0
+        },
+        {
+          "opponent": "권혁주",
+          "rate": 48.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "문지성",
+          "rate": 48,
+          "timeouts": 0
+        },
+        {
+          "opponent": "고준형",
+          "rate": 40.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정준우",
+          "rate": 37.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정성연",
+          "rate": 37.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "구동우",
+          "rate": 28.000000000000004,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 27,
+          "timeouts": 2
+        },
+        {
+          "opponent": "양서지",
+          "rate": 23.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 17.5,
+          "timeouts": 0
+        }
+      ]
+    },
+    {
+      "rank": 12,
+      "name": "양시온",
+      "matches": 3600,
+      "wins": 1821,
+      "losses": 1777,
+      "draws": 1,
+      "timeouts": 1,
+      "winRate": 50.583333333333336,
+      "tier": "B",
+      "best": [
+        {
+          "opponent": "이권율",
+          "rate": 95,
+          "timeouts": 1
+        },
+        {
+          "opponent": "이지원",
+          "rate": 87.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 81.5,
+          "timeouts": 0
+        }
+      ],
+      "worst": [
+        {
+          "opponent": "박건",
+          "rate": 11.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정성연",
+          "rate": 20,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박성웅",
+          "rate": 26,
+          "timeouts": 0
+        }
+      ],
+      "matchups": [
+        {
+          "opponent": "이권율",
+          "rate": 95,
+          "timeouts": 1
+        },
+        {
+          "opponent": "이지원",
+          "rate": 87.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 81.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "함태준",
+          "rate": 81,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김지성",
+          "rate": 80,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 69.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정준우",
+          "rate": 56.00000000000001,
+          "timeouts": 0
+        },
+        {
+          "opponent": "구동우",
+          "rate": 52,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김재윤",
+          "rate": 44.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "고준형",
+          "rate": 40,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양서지",
+          "rate": 34,
+          "timeouts": 0
+        },
+        {
+          "opponent": "권혁주",
+          "rate": 34,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 33,
+          "timeouts": 0
+        },
+        {
+          "opponent": "문지성",
+          "rate": 33,
+          "timeouts": 0
+        },
+        {
+          "opponent": "허현",
+          "rate": 32,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박성웅",
+          "rate": 26,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정성연",
+          "rate": 20,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 11.5,
+          "timeouts": 0
+        }
+      ]
+    },
+    {
+      "rank": 13,
+      "name": "김지성",
+      "matches": 3600,
+      "wins": 1813,
+      "losses": 1722,
+      "draws": 0,
+      "timeouts": 65,
+      "winRate": 50.361111111111114,
+      "tier": "B",
+      "best": [
+        {
+          "opponent": "박성웅",
+          "rate": 95.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이권율",
+          "rate": 72,
+          "timeouts": 1
+        },
+        {
+          "opponent": "함태준",
+          "rate": 69.5,
+          "timeouts": 0
+        }
+      ],
+      "worst": [
+        {
+          "opponent": "양시온",
+          "rate": 20,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정성연",
+          "rate": 24.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 31,
+          "timeouts": 64
+        }
+      ],
+      "matchups": [
+        {
+          "opponent": "박성웅",
+          "rate": 95.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이권율",
+          "rate": 72,
+          "timeouts": 1
+        },
+        {
+          "opponent": "함태준",
+          "rate": 69.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정준우",
+          "rate": 67,
+          "timeouts": 0
+        },
+        {
+          "opponent": "고준형",
+          "rate": 58.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "허현",
+          "rate": 58.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "문지성",
+          "rate": 52.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 52.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 51,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김재윤",
+          "rate": 48,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 47,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양서지",
+          "rate": 42.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 41.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "구동우",
+          "rate": 37.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "권혁주",
+          "rate": 37.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 31,
+          "timeouts": 64
+        },
+        {
+          "opponent": "정성연",
+          "rate": 24.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양시온",
+          "rate": 20,
+          "timeouts": 0
+        }
+      ]
+    },
+    {
+      "rank": 14,
+      "name": "이지원",
+      "matches": 3600,
+      "wins": 1565,
+      "losses": 1857,
+      "draws": 0,
+      "timeouts": 178,
+      "winRate": 43.47222222222222,
+      "tier": "C",
+      "best": [
+        {
+          "opponent": "구동우",
+          "rate": 96,
+          "timeouts": 2
+        },
+        {
+          "opponent": "정준우",
+          "rate": 94,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김재윤",
+          "rate": 72,
+          "timeouts": 2
+        }
+      ],
+      "worst": [
+        {
+          "opponent": "양시온",
+          "rate": 12.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양서지",
+          "rate": 12.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 12.5,
+          "timeouts": 0
+        }
+      ],
+      "matchups": [
+        {
+          "opponent": "구동우",
+          "rate": 96,
+          "timeouts": 2
+        },
+        {
+          "opponent": "정준우",
+          "rate": 94,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김재윤",
+          "rate": 72,
+          "timeouts": 2
+        },
+        {
+          "opponent": "함태준",
+          "rate": 61.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박성웅",
+          "rate": 51.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이권율",
+          "rate": 48.5,
+          "timeouts": 94
+        },
+        {
+          "opponent": "이상권",
+          "rate": 47,
+          "timeouts": 2
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 43,
+          "timeouts": 7
+        },
+        {
+          "opponent": "고준형",
+          "rate": 41.5,
+          "timeouts": 4
+        },
+        {
+          "opponent": "김지성",
+          "rate": 37,
+          "timeouts": 64
+        },
+        {
+          "opponent": "정성연",
+          "rate": 34.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "권혁주",
+          "rate": 32,
+          "timeouts": 0
+        },
+        {
+          "opponent": "문지성",
+          "rate": 30.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "허현",
+          "rate": 30,
+          "timeouts": 3
+        },
+        {
+          "opponent": "이민규",
+          "rate": 26,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 12.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양서지",
+          "rate": 12.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양시온",
+          "rate": 12.5,
+          "timeouts": 0
+        }
+      ]
+    },
+    {
+      "rank": 15,
+      "name": "이상권",
+      "matches": 3600,
+      "wins": 1484,
+      "losses": 2113,
+      "draws": 0,
+      "timeouts": 3,
+      "winRate": 41.22222222222222,
+      "tier": "C",
+      "best": [
+        {
+          "opponent": "함태준",
+          "rate": 92.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 81,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이권율",
+          "rate": 72,
+          "timeouts": 1
+        }
+      ],
+      "worst": [
+        {
+          "opponent": "박성웅",
+          "rate": 3,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 6,
+          "timeouts": 0
+        },
+        {
+          "opponent": "고준형",
+          "rate": 16.5,
+          "timeouts": 0
+        }
+      ],
+      "matchups": [
+        {
+          "opponent": "함태준",
+          "rate": 92.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 81,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이권율",
+          "rate": 72,
+          "timeouts": 1
+        },
+        {
+          "opponent": "허현",
+          "rate": 66.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김지성",
+          "rate": 53,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 52,
+          "timeouts": 2
+        },
+        {
+          "opponent": "정성연",
+          "rate": 49,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 42,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김재윤",
+          "rate": 40.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양서지",
+          "rate": 38,
+          "timeouts": 0
+        },
+        {
+          "opponent": "문지성",
+          "rate": 29.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "권혁주",
+          "rate": 28.999999999999996,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정준우",
+          "rate": 27,
+          "timeouts": 0
+        },
+        {
+          "opponent": "구동우",
+          "rate": 26,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양시온",
+          "rate": 18.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "고준형",
+          "rate": 16.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 6,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박성웅",
+          "rate": 3,
+          "timeouts": 0
+        }
+      ]
+    },
+    {
+      "rank": 16,
+      "name": "이민규",
+      "matches": 3600,
+      "wins": 1439,
+      "losses": 2161,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 39.97222222222222,
+      "tier": "C",
+      "best": [
+        {
+          "opponent": "이권율",
+          "rate": 84,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 74,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 72.5,
+          "timeouts": 0
+        }
+      ],
+      "worst": [
+        {
+          "opponent": "박건",
+          "rate": 3,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박성웅",
+          "rate": 7.000000000000001,
+          "timeouts": 0
+        },
+        {
+          "opponent": "고준형",
+          "rate": 18.5,
+          "timeouts": 0
+        }
+      ],
+      "matchups": [
+        {
+          "opponent": "이권율",
+          "rate": 84,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 74,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 72.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양시온",
+          "rate": 67,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김지성",
+          "rate": 58.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 57.99999999999999,
+          "timeouts": 0
+        },
+        {
+          "opponent": "함태준",
+          "rate": 42.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김재윤",
+          "rate": 35.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정성연",
+          "rate": 35,
+          "timeouts": 0
+        },
+        {
+          "opponent": "허현",
+          "rate": 31,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정준우",
+          "rate": 29.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "권혁주",
+          "rate": 28.999999999999996,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양서지",
+          "rate": 28.000000000000004,
+          "timeouts": 0
+        },
+        {
+          "opponent": "구동우",
+          "rate": 23.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "문지성",
+          "rate": 23,
+          "timeouts": 0
+        },
+        {
+          "opponent": "고준형",
+          "rate": 18.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박성웅",
+          "rate": 7.000000000000001,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 3,
+          "timeouts": 0
+        }
+      ]
+    },
+    {
+      "rank": 17,
+      "name": "함태준",
+      "matches": 3600,
+      "wins": 1377,
+      "losses": 2223,
+      "draws": 0,
+      "timeouts": 0,
+      "winRate": 38.25,
+      "tier": "C",
+      "best": [
+        {
+          "opponent": "이권율",
+          "rate": 92.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 73.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정준우",
+          "rate": 68.5,
+          "timeouts": 0
+        }
+      ],
+      "worst": [
+        {
+          "opponent": "양서지",
+          "rate": 6,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 7.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "권혁주",
+          "rate": 10.5,
+          "timeouts": 0
+        }
+      ],
+      "matchups": [
+        {
+          "opponent": "이권율",
+          "rate": 92.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 73.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정준우",
+          "rate": 68.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 57.49999999999999,
+          "timeouts": 0
+        },
+        {
+          "opponent": "문지성",
+          "rate": 47.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김재윤",
+          "rate": 47.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "고준형",
+          "rate": 44,
+          "timeouts": 0
+        },
+        {
+          "opponent": "허현",
+          "rate": 43,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 38.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박성웅",
+          "rate": 36,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김지성",
+          "rate": 30.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정찬영",
+          "rate": 30.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정성연",
+          "rate": 22.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양시온",
+          "rate": 19,
+          "timeouts": 0
+        },
+        {
+          "opponent": "구동우",
+          "rate": 13.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "권혁주",
+          "rate": 10.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 7.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양서지",
+          "rate": 6,
+          "timeouts": 0
+        }
+      ]
+    },
+    {
+      "rank": 18,
+      "name": "정찬영",
+      "matches": 3600,
+      "wins": 1169,
+      "losses": 2423,
+      "draws": 1,
+      "timeouts": 7,
+      "winRate": 32.47222222222222,
+      "tier": "D",
+      "best": [
+        {
+          "opponent": "이권율",
+          "rate": 71,
+          "timeouts": 0
+        },
+        {
+          "opponent": "함태준",
+          "rate": 69.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 53.5,
+          "timeouts": 7
+        }
+      ],
+      "worst": [
+        {
+          "opponent": "박건",
+          "rate": 10,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정성연",
+          "rate": 11,
+          "timeouts": 0
+        },
+        {
+          "opponent": "권혁주",
+          "rate": 13.5,
+          "timeouts": 0
+        }
+      ],
+      "matchups": [
+        {
+          "opponent": "이권율",
+          "rate": 71,
+          "timeouts": 0
+        },
+        {
+          "opponent": "함태준",
+          "rate": 69.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 53.5,
+          "timeouts": 7
+        },
+        {
+          "opponent": "정준우",
+          "rate": 48.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김지성",
+          "rate": 47.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "허현",
+          "rate": 45.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박성웅",
+          "rate": 34,
+          "timeouts": 0
+        },
+        {
+          "opponent": "문지성",
+          "rate": 30.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양시온",
+          "rate": 30.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이민규",
+          "rate": 27.500000000000004,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김재윤",
+          "rate": 21.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "고준형",
+          "rate": 19,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이상권",
+          "rate": 19,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양서지",
+          "rate": 18,
+          "timeouts": 0
+        },
+        {
+          "opponent": "구동우",
+          "rate": 14.499999999999998,
+          "timeouts": 0
+        },
+        {
+          "opponent": "권혁주",
+          "rate": 13.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정성연",
+          "rate": 11,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박건",
+          "rate": 10,
+          "timeouts": 0
+        }
+      ]
+    },
+    {
+      "rank": 19,
+      "name": "이권율",
+      "matches": 3600,
+      "wins": 380,
+      "losses": 3122,
+      "draws": 1,
+      "timeouts": 97,
+      "winRate": 10.555555555555555,
+      "tier": "D",
+      "best": [
+        {
+          "opponent": "정찬영",
+          "rate": 28.499999999999996,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김지성",
+          "rate": 27.500000000000004,
+          "timeouts": 1
+        },
+        {
+          "opponent": "이상권",
+          "rate": 27.500000000000004,
+          "timeouts": 1
+        }
+      ],
+      "worst": [
+        {
+          "opponent": "양서지",
+          "rate": 0.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "고준형",
+          "rate": 0.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박성웅",
+          "rate": 2,
+          "timeouts": 0
+        }
+      ],
+      "matchups": [
+        {
+          "opponent": "정찬영",
+          "rate": 28.499999999999996,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김지성",
+          "rate": 27.500000000000004,
+          "timeouts": 1
+        },
+        {
+          "opponent": "이상권",
+          "rate": 27.500000000000004,
+          "timeouts": 1
+        },
+        {
+          "opponent": "이민규",
+          "rate": 16,
+          "timeouts": 0
+        },
+        {
+          "opponent": "권혁주",
+          "rate": 14.000000000000002,
+          "timeouts": 0
+        },
+        {
+          "opponent": "허현",
+          "rate": 12.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "김재윤",
+          "rate": 12.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "문지성",
+          "rate": 9,
+          "timeouts": 0
+        },
+        {
+          "opponent": "함태준",
+          "rate": 7.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정준우",
+          "rate": 7.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "정성연",
+          "rate": 7.000000000000001,
+          "timeouts": 0
+        },
+        {
+          "opponent": "구동우",
+          "rate": 6.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "이지원",
+          "rate": 4.5,
+          "timeouts": 94
+        },
+        {
+          "opponent": "양시온",
+          "rate": 4.5,
+          "timeouts": 1
+        },
+        {
+          "opponent": "박건",
+          "rate": 2,
+          "timeouts": 0
+        },
+        {
+          "opponent": "박성웅",
+          "rate": 2,
+          "timeouts": 0
+        },
+        {
+          "opponent": "고준형",
+          "rate": 0.5,
+          "timeouts": 0
+        },
+        {
+          "opponent": "양서지",
+          "rate": 0.5,
+          "timeouts": 0
+        }
+      ]
+    }
+  ]
+}

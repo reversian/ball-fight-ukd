@@ -1,0 +1,1800 @@
+{
+  "seed": 20261024,
+  "fps": 60,
+  "limitSeconds": 180,
+  "matchesPerCharacter": 100,
+  "excluded": [
+    "이서안"
+  ],
+  "stats": [
+    {
+      "name": "양서지",
+      "matches": 100,
+      "wins": 79,
+      "losses": 21,
+      "draws": 0,
+      "timeouts": 0,
+      "sides": [
+        50,
+        50
+      ],
+      "winRate": 79
+    },
+    {
+      "name": "박건",
+      "matches": 100,
+      "wins": 65,
+      "losses": 35,
+      "draws": 0,
+      "timeouts": 0,
+      "sides": [
+        50,
+        50
+      ],
+      "winRate": 65
+    },
+    {
+      "name": "정성연",
+      "matches": 100,
+      "wins": 65,
+      "losses": 35,
+      "draws": 0,
+      "timeouts": 0,
+      "sides": [
+        50,
+        50
+      ],
+      "winRate": 65
+    },
+    {
+      "name": "문지성",
+      "matches": 100,
+      "wins": 58,
+      "losses": 42,
+      "draws": 0,
+      "timeouts": 0,
+      "sides": [
+        50,
+        50
+      ],
+      "winRate": 58
+    },
+    {
+      "name": "박성웅",
+      "matches": 100,
+      "wins": 54,
+      "losses": 46,
+      "draws": 0,
+      "timeouts": 0,
+      "sides": [
+        50,
+        50
+      ],
+      "winRate": 54
+    },
+    {
+      "name": "구동우",
+      "matches": 100,
+      "wins": 52,
+      "losses": 48,
+      "draws": 0,
+      "timeouts": 0,
+      "sides": [
+        50,
+        50
+      ],
+      "winRate": 52
+    },
+    {
+      "name": "권혁주",
+      "matches": 100,
+      "wins": 51,
+      "losses": 49,
+      "draws": 0,
+      "timeouts": 0,
+      "sides": [
+        50,
+        50
+      ],
+      "winRate": 51
+    },
+    {
+      "name": "이권율",
+      "matches": 100,
+      "wins": 51,
+      "losses": 47,
+      "draws": 0,
+      "timeouts": 2,
+      "sides": [
+        50,
+        50
+      ],
+      "winRate": 51
+    },
+    {
+      "name": "정찬영",
+      "matches": 100,
+      "wins": 50,
+      "losses": 50,
+      "draws": 0,
+      "timeouts": 0,
+      "sides": [
+        50,
+        50
+      ],
+      "winRate": 50
+    },
+    {
+      "name": "이지원",
+      "matches": 100,
+      "wins": 46,
+      "losses": 48,
+      "draws": 0,
+      "timeouts": 6,
+      "sides": [
+        50,
+        50
+      ],
+      "winRate": 46
+    },
+    {
+      "name": "양시온",
+      "matches": 100,
+      "wins": 46,
+      "losses": 54,
+      "draws": 0,
+      "timeouts": 0,
+      "sides": [
+        50,
+        50
+      ],
+      "winRate": 46
+    },
+    {
+      "name": "이상권",
+      "matches": 100,
+      "wins": 46,
+      "losses": 54,
+      "draws": 0,
+      "timeouts": 0,
+      "sides": [
+        50,
+        50
+      ],
+      "winRate": 46
+    },
+    {
+      "name": "김재윤",
+      "matches": 100,
+      "wins": 45,
+      "losses": 55,
+      "draws": 0,
+      "timeouts": 0,
+      "sides": [
+        50,
+        50
+      ],
+      "winRate": 45
+    },
+    {
+      "name": "함태준",
+      "matches": 100,
+      "wins": 44,
+      "losses": 56,
+      "draws": 0,
+      "timeouts": 0,
+      "sides": [
+        50,
+        50
+      ],
+      "winRate": 44
+    },
+    {
+      "name": "고준형",
+      "matches": 100,
+      "wins": 43,
+      "losses": 57,
+      "draws": 0,
+      "timeouts": 0,
+      "sides": [
+        50,
+        50
+      ],
+      "winRate": 43
+    },
+    {
+      "name": "김지성",
+      "matches": 100,
+      "wins": 43,
+      "losses": 53,
+      "draws": 0,
+      "timeouts": 4,
+      "sides": [
+        50,
+        50
+      ],
+      "winRate": 43
+    },
+    {
+      "name": "정준우",
+      "matches": 100,
+      "wins": 41,
+      "losses": 59,
+      "draws": 0,
+      "timeouts": 0,
+      "sides": [
+        50,
+        50
+      ],
+      "winRate": 41
+    },
+    {
+      "name": "허현",
+      "matches": 100,
+      "wins": 38,
+      "losses": 62,
+      "draws": 0,
+      "timeouts": 0,
+      "sides": [
+        50,
+        50
+      ],
+      "winRate": 38
+    },
+    {
+      "name": "이민규",
+      "matches": 100,
+      "wins": 27,
+      "losses": 73,
+      "draws": 0,
+      "timeouts": 0,
+      "sides": [
+        50,
+        50
+      ],
+      "winRate": 27
+    }
+  ],
+  "pairs": [
+    {
+      "a": "함태준",
+      "b": "정준우",
+      "matches": 6,
+      "aWins": 4,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "구동우",
+      "b": "정성연",
+      "matches": 6,
+      "aWins": 4,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "함태준",
+      "b": "박성웅",
+      "matches": 5,
+      "aWins": 1,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "허현",
+      "b": "박성웅",
+      "matches": 6,
+      "aWins": 3,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "김지성",
+      "b": "김재윤",
+      "matches": 6,
+      "aWins": 3,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "김지성",
+      "b": "이지원",
+      "matches": 6,
+      "aWins": 0,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 4
+    },
+    {
+      "a": "정찬영",
+      "b": "이권율",
+      "matches": 6,
+      "aWins": 3,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "양서지",
+      "b": "박성웅",
+      "matches": 6,
+      "aWins": 2,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "함태준",
+      "b": "이지원",
+      "matches": 5,
+      "aWins": 2,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "고준형",
+      "b": "이상권",
+      "matches": 6,
+      "aWins": 2,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "정준우",
+      "b": "박성웅",
+      "matches": 5,
+      "aWins": 2,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "김지성",
+      "b": "이상권",
+      "matches": 6,
+      "aWins": 2,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "고준형",
+      "b": "이권율",
+      "matches": 6,
+      "aWins": 4,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "함태준",
+      "b": "정찬영",
+      "matches": 5,
+      "aWins": 4,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "박건",
+      "b": "구동우",
+      "matches": 6,
+      "aWins": 4,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "정준우",
+      "b": "김지성",
+      "matches": 6,
+      "aWins": 2,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "정준우",
+      "b": "이권율",
+      "matches": 5,
+      "aWins": 2,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "김재윤",
+      "b": "이권율",
+      "matches": 6,
+      "aWins": 2,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "박건",
+      "b": "김지성",
+      "matches": 5,
+      "aWins": 2,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이민규",
+      "b": "함태준",
+      "matches": 6,
+      "aWins": 3,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이민규",
+      "b": "정준우",
+      "matches": 6,
+      "aWins": 1,
+      "bWins": 5,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "고준형",
+      "b": "김지성",
+      "matches": 5,
+      "aWins": 1,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "박건",
+      "b": "김재윤",
+      "matches": 5,
+      "aWins": 5,
+      "bWins": 0,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이지원",
+      "b": "이상권",
+      "matches": 6,
+      "aWins": 2,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "김재윤",
+      "b": "이상권",
+      "matches": 6,
+      "aWins": 2,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "정성연",
+      "b": "정찬영",
+      "matches": 5,
+      "aWins": 4,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "양서지",
+      "b": "양시온",
+      "matches": 5,
+      "aWins": 4,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "정준우",
+      "b": "정성연",
+      "matches": 6,
+      "aWins": 3,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "고준형",
+      "b": "권혁주",
+      "matches": 5,
+      "aWins": 3,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "고준형",
+      "b": "박건",
+      "matches": 6,
+      "aWins": 4,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "권혁주",
+      "b": "이권율",
+      "matches": 5,
+      "aWins": 3,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이민규",
+      "b": "양서지",
+      "matches": 6,
+      "aWins": 2,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "김지성",
+      "b": "박성웅",
+      "matches": 5,
+      "aWins": 5,
+      "bWins": 0,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "양서지",
+      "b": "이권율",
+      "matches": 5,
+      "aWins": 5,
+      "bWins": 0,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "양시온",
+      "b": "정찬영",
+      "matches": 6,
+      "aWins": 4,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "김재윤",
+      "b": "정찬영",
+      "matches": 6,
+      "aWins": 3,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "허현",
+      "b": "이상권",
+      "matches": 6,
+      "aWins": 2,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "김재윤",
+      "b": "양시온",
+      "matches": 6,
+      "aWins": 5,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "허현",
+      "b": "양시온",
+      "matches": 5,
+      "aWins": 2,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "박건",
+      "b": "함태준",
+      "matches": 6,
+      "aWins": 1,
+      "bWins": 5,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이민규",
+      "b": "이권율",
+      "matches": 6,
+      "aWins": 0,
+      "bWins": 6,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "양시온",
+      "b": "박성웅",
+      "matches": 6,
+      "aWins": 1,
+      "bWins": 5,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "양시온",
+      "b": "이권율",
+      "matches": 6,
+      "aWins": 5,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "고준형",
+      "b": "함태준",
+      "matches": 6,
+      "aWins": 1,
+      "bWins": 5,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "정준우",
+      "b": "문지성",
+      "matches": 6,
+      "aWins": 1,
+      "bWins": 5,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "정성연",
+      "b": "김재윤",
+      "matches": 6,
+      "aWins": 3,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "정성연",
+      "b": "문지성",
+      "matches": 6,
+      "aWins": 4,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이권율",
+      "b": "박성웅",
+      "matches": 6,
+      "aWins": 3,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이민규",
+      "b": "박성웅",
+      "matches": 6,
+      "aWins": 0,
+      "bWins": 6,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "구동우",
+      "b": "박성웅",
+      "matches": 5,
+      "aWins": 2,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "구동우",
+      "b": "양시온",
+      "matches": 5,
+      "aWins": 0,
+      "bWins": 5,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이민규",
+      "b": "구동우",
+      "matches": 6,
+      "aWins": 3,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "허현",
+      "b": "양서지",
+      "matches": 6,
+      "aWins": 0,
+      "bWins": 6,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "권혁주",
+      "b": "양시온",
+      "matches": 5,
+      "aWins": 5,
+      "bWins": 0,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "박건",
+      "b": "권혁주",
+      "matches": 6,
+      "aWins": 5,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "박건",
+      "b": "박성웅",
+      "matches": 6,
+      "aWins": 6,
+      "bWins": 0,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "고준형",
+      "b": "이민규",
+      "matches": 6,
+      "aWins": 5,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "권혁주",
+      "b": "정준우",
+      "matches": 6,
+      "aWins": 4,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "함태준",
+      "b": "이상권",
+      "matches": 5,
+      "aWins": 0,
+      "bWins": 5,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "박건",
+      "b": "문지성",
+      "matches": 5,
+      "aWins": 2,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "허현",
+      "b": "이민규",
+      "matches": 6,
+      "aWins": 5,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이지원",
+      "b": "박성웅",
+      "matches": 6,
+      "aWins": 4,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "고준형",
+      "b": "정준우",
+      "matches": 5,
+      "aWins": 3,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "권혁주",
+      "b": "김지성",
+      "matches": 6,
+      "aWins": 3,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "고준형",
+      "b": "이지원",
+      "matches": 5,
+      "aWins": 1,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "함태준",
+      "b": "양시온",
+      "matches": 5,
+      "aWins": 2,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "고준형",
+      "b": "정찬영",
+      "matches": 6,
+      "aWins": 0,
+      "bWins": 6,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "김지성",
+      "b": "양시온",
+      "matches": 6,
+      "aWins": 1,
+      "bWins": 5,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "권혁주",
+      "b": "이상권",
+      "matches": 5,
+      "aWins": 2,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "정성연",
+      "b": "이지원",
+      "matches": 6,
+      "aWins": 5,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "권혁주",
+      "b": "박성웅",
+      "matches": 5,
+      "aWins": 5,
+      "bWins": 0,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "박건",
+      "b": "이권율",
+      "matches": 6,
+      "aWins": 3,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "허현",
+      "b": "권혁주",
+      "matches": 5,
+      "aWins": 3,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "김지성",
+      "b": "이권율",
+      "matches": 5,
+      "aWins": 2,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "허현",
+      "b": "김재윤",
+      "matches": 5,
+      "aWins": 3,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "구동우",
+      "b": "김재윤",
+      "matches": 5,
+      "aWins": 3,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "허현",
+      "b": "박건",
+      "matches": 6,
+      "aWins": 2,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "정찬영",
+      "b": "이상권",
+      "matches": 6,
+      "aWins": 3,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "함태준",
+      "b": "김재윤",
+      "matches": 5,
+      "aWins": 4,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "함태준",
+      "b": "이권율",
+      "matches": 5,
+      "aWins": 0,
+      "bWins": 5,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "문지성",
+      "b": "양시온",
+      "matches": 6,
+      "aWins": 4,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "고준형",
+      "b": "문지성",
+      "matches": 5,
+      "aWins": 2,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "허현",
+      "b": "구동우",
+      "matches": 6,
+      "aWins": 1,
+      "bWins": 5,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이민규",
+      "b": "정찬영",
+      "matches": 5,
+      "aWins": 1,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "권혁주",
+      "b": "정찬영",
+      "matches": 5,
+      "aWins": 3,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "박건",
+      "b": "정성연",
+      "matches": 5,
+      "aWins": 1,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "허현",
+      "b": "정준우",
+      "matches": 5,
+      "aWins": 3,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이지원",
+      "b": "정찬영",
+      "matches": 6,
+      "aWins": 4,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "허현",
+      "b": "정성연",
+      "matches": 5,
+      "aWins": 2,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이상권",
+      "b": "박성웅",
+      "matches": 6,
+      "aWins": 0,
+      "bWins": 6,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "양서지",
+      "b": "정준우",
+      "matches": 6,
+      "aWins": 4,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "허현",
+      "b": "이지원",
+      "matches": 5,
+      "aWins": 2,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "양서지",
+      "b": "권혁주",
+      "matches": 6,
+      "aWins": 4,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "구동우",
+      "b": "정찬영",
+      "matches": 5,
+      "aWins": 3,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "허현",
+      "b": "김지성",
+      "matches": 5,
+      "aWins": 1,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "양서지",
+      "b": "정성연",
+      "matches": 6,
+      "aWins": 6,
+      "bWins": 0,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "양서지",
+      "b": "구동우",
+      "matches": 6,
+      "aWins": 4,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "허현",
+      "b": "함태준",
+      "matches": 6,
+      "aWins": 1,
+      "bWins": 5,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "문지성",
+      "b": "이상권",
+      "matches": 5,
+      "aWins": 3,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이상권",
+      "b": "이권율",
+      "matches": 6,
+      "aWins": 2,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "정성연",
+      "b": "이상권",
+      "matches": 5,
+      "aWins": 4,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이민규",
+      "b": "양시온",
+      "matches": 5,
+      "aWins": 2,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "함태준",
+      "b": "정성연",
+      "matches": 6,
+      "aWins": 0,
+      "bWins": 6,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이민규",
+      "b": "이지원",
+      "matches": 5,
+      "aWins": 3,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "권혁주",
+      "b": "이지원",
+      "matches": 5,
+      "aWins": 4,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "구동우",
+      "b": "이권율",
+      "matches": 5,
+      "aWins": 3,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "함태준",
+      "b": "김지성",
+      "matches": 5,
+      "aWins": 1,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "문지성",
+      "b": "이권율",
+      "matches": 5,
+      "aWins": 3,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "김재윤",
+      "b": "이지원",
+      "matches": 6,
+      "aWins": 3,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "양서지",
+      "b": "이지원",
+      "matches": 5,
+      "aWins": 5,
+      "bWins": 0,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "양서지",
+      "b": "김재윤",
+      "matches": 5,
+      "aWins": 4,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "구동우",
+      "b": "정준우",
+      "matches": 6,
+      "aWins": 2,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "고준형",
+      "b": "정성연",
+      "matches": 5,
+      "aWins": 3,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "허현",
+      "b": "이권율",
+      "matches": 6,
+      "aWins": 3,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "정찬영",
+      "b": "박성웅",
+      "matches": 6,
+      "aWins": 2,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "문지성",
+      "b": "김지성",
+      "matches": 6,
+      "aWins": 4,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "허현",
+      "b": "문지성",
+      "matches": 5,
+      "aWins": 1,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "정성연",
+      "b": "김지성",
+      "matches": 6,
+      "aWins": 5,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "정준우",
+      "b": "이지원",
+      "matches": 6,
+      "aWins": 0,
+      "bWins": 6,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이민규",
+      "b": "김지성",
+      "matches": 5,
+      "aWins": 3,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "양서지",
+      "b": "김지성",
+      "matches": 5,
+      "aWins": 3,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이지원",
+      "b": "이권율",
+      "matches": 6,
+      "aWins": 2,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 2
+    },
+    {
+      "a": "박건",
+      "b": "정준우",
+      "matches": 5,
+      "aWins": 4,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "고준형",
+      "b": "양서지",
+      "matches": 6,
+      "aWins": 0,
+      "bWins": 6,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "구동우",
+      "b": "문지성",
+      "matches": 6,
+      "aWins": 2,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "박건",
+      "b": "이지원",
+      "matches": 5,
+      "aWins": 4,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "문지성",
+      "b": "정찬영",
+      "matches": 6,
+      "aWins": 3,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "정준우",
+      "b": "이상권",
+      "matches": 5,
+      "aWins": 4,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "정성연",
+      "b": "이권율",
+      "matches": 5,
+      "aWins": 2,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "권혁주",
+      "b": "정성연",
+      "matches": 6,
+      "aWins": 2,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "권혁주",
+      "b": "문지성",
+      "matches": 6,
+      "aWins": 2,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "박건",
+      "b": "이민규",
+      "matches": 6,
+      "aWins": 6,
+      "bWins": 0,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "허현",
+      "b": "정찬영",
+      "matches": 6,
+      "aWins": 2,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "함태준",
+      "b": "구동우",
+      "matches": 6,
+      "aWins": 1,
+      "bWins": 5,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "권혁주",
+      "b": "김재윤",
+      "matches": 6,
+      "aWins": 2,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "양서지",
+      "b": "문지성",
+      "matches": 5,
+      "aWins": 4,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "박건",
+      "b": "양서지",
+      "matches": 6,
+      "aWins": 1,
+      "bWins": 5,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "문지성",
+      "b": "김재윤",
+      "matches": 6,
+      "aWins": 5,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "구동우",
+      "b": "이지원",
+      "matches": 5,
+      "aWins": 0,
+      "bWins": 5,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이민규",
+      "b": "이상권",
+      "matches": 5,
+      "aWins": 2,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이민규",
+      "b": "문지성",
+      "matches": 5,
+      "aWins": 1,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "함태준",
+      "b": "문지성",
+      "matches": 6,
+      "aWins": 5,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "고준형",
+      "b": "양시온",
+      "matches": 6,
+      "aWins": 5,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "정성연",
+      "b": "양시온",
+      "matches": 6,
+      "aWins": 6,
+      "bWins": 0,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "고준형",
+      "b": "허현",
+      "matches": 6,
+      "aWins": 4,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이민규",
+      "b": "정성연",
+      "matches": 5,
+      "aWins": 0,
+      "bWins": 5,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이민규",
+      "b": "김재윤",
+      "matches": 5,
+      "aWins": 1,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "문지성",
+      "b": "이지원",
+      "matches": 6,
+      "aWins": 4,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "고준형",
+      "b": "박성웅",
+      "matches": 6,
+      "aWins": 1,
+      "bWins": 5,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "박건",
+      "b": "정찬영",
+      "matches": 5,
+      "aWins": 5,
+      "bWins": 0,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "김재윤",
+      "b": "박성웅",
+      "matches": 5,
+      "aWins": 5,
+      "bWins": 0,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "김지성",
+      "b": "정찬영",
+      "matches": 6,
+      "aWins": 0,
+      "bWins": 6,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "양서지",
+      "b": "정찬영",
+      "matches": 5,
+      "aWins": 4,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "구동우",
+      "b": "이상권",
+      "matches": 5,
+      "aWins": 3,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "양서지",
+      "b": "이상권",
+      "matches": 5,
+      "aWins": 3,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "양시온",
+      "b": "이상권",
+      "matches": 6,
+      "aWins": 5,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "정준우",
+      "b": "정찬영",
+      "matches": 5,
+      "aWins": 0,
+      "bWins": 5,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "함태준",
+      "b": "권혁주",
+      "matches": 6,
+      "aWins": 2,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "문지성",
+      "b": "박성웅",
+      "matches": 5,
+      "aWins": 1,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "구동우",
+      "b": "권혁주",
+      "matches": 6,
+      "aWins": 4,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "고준형",
+      "b": "김재윤",
+      "matches": 5,
+      "aWins": 3,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "정준우",
+      "b": "김재윤",
+      "matches": 6,
+      "aWins": 4,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "정준우",
+      "b": "양시온",
+      "matches": 5,
+      "aWins": 3,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이지원",
+      "b": "양시온",
+      "matches": 6,
+      "aWins": 1,
+      "bWins": 5,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "구동우",
+      "b": "김지성",
+      "matches": 6,
+      "aWins": 5,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "박건",
+      "b": "양시온",
+      "matches": 5,
+      "aWins": 5,
+      "bWins": 0,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "고준형",
+      "b": "구동우",
+      "matches": 5,
+      "aWins": 1,
+      "bWins": 4,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "양서지",
+      "b": "함태준",
+      "matches": 6,
+      "aWins": 6,
+      "bWins": 0,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "정성연",
+      "b": "박성웅",
+      "matches": 5,
+      "aWins": 3,
+      "bWins": 2,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "박건",
+      "b": "이상권",
+      "matches": 6,
+      "aWins": 5,
+      "bWins": 1,
+      "draws": 0,
+      "timeouts": 0
+    },
+    {
+      "a": "이민규",
+      "b": "권혁주",
+      "matches": 6,
+      "aWins": 3,
+      "bWins": 3,
+      "draws": 0,
+      "timeouts": 0
+    }
+  ],
+  "totalMatches": 950
+}
